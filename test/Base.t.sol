@@ -27,11 +27,11 @@ abstract contract BaseTest is Test {
     uint8 internal constant VOLTA_IDX = 2;
     uint8 internal constant SENT_IDX = 0;
     uint8 internal constant VOID_IDX = 1;
-    // Cities: 0 Milano (SENT), 1 Roma (VOLTA), 2 Napoli (follows the vote), 3 Venezia (VOID).
-    uint8 internal constant MILANO = 0;
-    uint8 internal constant ROMA = 1;
-    uint8 internal constant NAPOLI = 2;
-    uint8 internal constant VENEZIA = 3;
+    // Cities: 0 Brickell (SENT), 1 Downtown (VOLTA), 2 Wynwood (follows the vote), 3 Miami Beach (VOID).
+    uint8 internal constant BRICKELL = 0;
+    uint8 internal constant DOWNTOWN = 1;
+    uint8 internal constant WYNWOOD = 2;
+    uint8 internal constant MIAMI_BEACH = 3;
 
     address internal admin = makeAddr("timelock");
     address internal opsSafe = makeAddr("opsSafe");

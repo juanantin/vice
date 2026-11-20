@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { DISTRICTS, TOKENS } from "../lib/config";
+import { DISTRICTS, GAME, TOKENS } from "../lib/config";
 import { ago, startFeed, useFeed, type Post } from "../lib/feed";
 import { ink } from "../lib/theme";
 
 function Avatar({ p }: { p: Post }) {
   const D = p.city === null ? null : DISTRICTS[p.city];
-  const label = D ? D.city.slice(0, 2).toUpperCase() : "TV";
+  const label = D ? D.city.split(" ").map((w) => w[0]).join("").slice(0, 2).padEnd(2, D.city[1]).toUpperCase() : "TV";
   return (
     <span className="avatar" style={{ ["--c" as string]: D ? ink(D) : "var(--mint)" }}>
       {label}
@@ -40,15 +40,15 @@ function useNow() {
   return now;
 }
 
-/** The floating "Capitale Live" feed on wide screens. */
+/** The floating live feed on wide screens. */
 export function FeedPanel() {
   const posts = useFeed();
   const now = useNow();
   useEffect(() => startFeed(), []);
   return (
-    <aside className="feed-panel" aria-label="Capitale Live">
+    <aside className="feed-panel" aria-label={`${GAME.name} Live`}>
       <div className="feed-title">
-        <span className="live-dot" /> CAPITALE LIVE
+        <span className="live-dot" /> {GAME.name.toUpperCase()} LIVE
       </div>
       {posts.slice(0, 4).map((p) => (
         <PostCard key={p.id} p={p} now={now} />

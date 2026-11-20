@@ -45,7 +45,7 @@ contract TestKitTest is Test {
                 weth: IWETH(address(0)),
                 districts: 4,
                 initialToken: 1, // the vote city starts on SENT
-                // Milano SENT, Roma VOLTA, Napoli follows the vote, Venezia VOID (kit order: VOLTA, SENT, VOID).
+                // Brickell SENT, Downtown VOLTA, Wynwood follows the vote, Miami Beach VOID (kit order: VOLTA, SENT, VOID).
                 cityTokens: [uint8(1), 0, 254, 2]
             }),
             toks,
@@ -57,7 +57,7 @@ contract TestKitTest is Test {
 
         kit.capitale().faucet();
         kit.capitale().approve(address(nft), type(uint256).max);
-        assertEq(nft.mint(2, 1, 0, type(uint256).max), 1); // a Napoli palazzo
+        assertEq(nft.mint(2, 1, 0, type(uint256).max), 1); // a Wynwood building
         vm.stopPrank();
 
         // $CAPITALE trades; Volta credits the creator share to the vault; anyone collects it.
@@ -69,9 +69,9 @@ contract TestKitTest is Test {
         vault.settle();
         assertGt(vault.pending(1, 1), 0);
 
-        // Napoli follows the vote. Week 2 buys VOLTA itself: no swap, set aside 1:1 for buildings.
+        // Wynwood follows the vote. Week 2 buys VOLTA itself: no swap, set aside 1:1 for buildings.
         // Fees collected right at the deadline still count for the week that ended (settlement
-        // is lazy), so Napoli's street prize is 15% of both payments: 70 + 30 = 100.
+        // is lazy), so Wynwood's street prize is 15% of both payments: 70 + 30 = 100.
         vm.prank(juan);
         vault.vote(_ids(1), 0);
         vm.warp(vault.weekEnd());
@@ -83,7 +83,7 @@ contract TestKitTest is Test {
         vm.prank(juan);
         vault.claim(1);
         assertGt(r[1].balanceOf(juan), 0);
-        assertEq(r[0].balanceOf(juan), 100e18); // residents' 70 + the 30 street prize, all to the one palazzo
+        assertEq(r[0].balanceOf(juan), 100e18); // residents' 70 + the 30 street prize, all to the one building
 
         // A bad fill on a swapped token is rejected and pauses buying.
         vm.prank(juan);

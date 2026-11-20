@@ -162,7 +162,7 @@ function makeInitial(): CityState {
       builtAt: now - Math.floor(age * 30 * 86400),
     });
   }
-  // Each city earns its own token; Napoli (the vote city) has earned all three over past weeks.
+  // Each district earns its own token; Wynwood (the vote district) has earned all three over past weeks.
   const sampleUsd = [0.00059, 0.00005, 0.000135];
   for (const b of buildings) {
     const earns = DISTRICTS[b.district].earns;

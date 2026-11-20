@@ -15,10 +15,10 @@ import { FeedPanel, FeedTab } from "./Feed";
 import NewsTicker from "./NewsTicker";
 import WhitePaper from "./WhitePaper";
 import { BuildTab, MyPalazzoTab, RankingsTab, SindacoTab, TownHallTab, TreasuryTab } from "./Panels";
-import { MAX_BUILDINGS, TOKENS } from "../lib/config";
+import { MAX_BUILDINGS, TICKER, TOKENS, VOTE_CITIES } from "../lib/config";
 import { getCity, setLive, setMode, settleIfDue, tick, ui, useCity } from "../lib/store";
 
-// Riviera theme: the tabs are apps on the crew's phone.
+// The tabs are apps on the crew's phone.
 const TABS = [
   { key: "feed", label: "Live", icon: "LV" },
   { key: "build", label: "Move in", icon: "IN" },
@@ -106,7 +106,7 @@ function Game() {
 
       <header className="top">
         <div className="token-card">
-          <div className="token-name">$CAPITALE</div>
+          <div className="token-name">{TICKER}</div>
           <button className="ca" onClick={() => { setCopied(true); setTimeout(() => setCopied(false), 1200); }}>
             CA: {copied ? "announced at launch" : "coming soon"}
           </button>
@@ -125,7 +125,7 @@ function Game() {
         <div className="stat"><span>Crew</span><b>{city.buildings.length.toLocaleString()}<small>/{MAX_BUILDINGS.toLocaleString()}</small></b></div>
         <div className="stat"><span>The take</span><b>{compact(city.totalTax)} <small>VOLTA</small></b></div>
         <div className="stat"><span>Scores</span><b>{city.totalPurchases}</b></div>
-        <div className="stat" style={{ ["--c" as string]: ink(D) }}><span>Napoli&apos;s next job</span><b className="week-token">{D.token}</b></div>
+        <div className="stat" style={{ ["--c" as string]: ink(D) }}><span>{VOTE_CITIES()[0]?.city ?? "Vote"}&apos;s next job</span><b className="week-token">{D.token}</b></div>
         {/* Test mode is hidden: a triple click / tap on this chip opens the test lab. */}
         <button className={`stat live ${city.mode === "testnet" || city.live ? "on" : ""}`} onClick={onModeChipClick}>
           {city.mode === "preview" ? (

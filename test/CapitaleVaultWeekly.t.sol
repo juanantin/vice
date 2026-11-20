@@ -137,19 +137,19 @@ contract CapitaleVaultWeeklyTest is BaseTest {
     // ─────────── street competition ───────────
 
     function test_districtWithMostNewBuildingsWins() public {
-        build(alice, MILANO);
-        build(alice, ROMA);
-        build(bob, ROMA);
+        build(alice, BRICKELL);
+        build(alice, DOWNTOWN);
+        build(bob, DOWNTOWN);
         _payStreet(0.2 ether);
         assertEq(vault.streetFunds(), 0.03 ether);
         vm.warp(FIRST_DEADLINE);
         vault.settle();
-        // Roma built 2 this week vs Milano 1: Roma wins the whole street share.
-        assertEq(vault.cityStreetFunds(ROMA), 0.03 ether);
-        assertEq(vault.cityStreetFunds(MILANO), 0);
+        // Downtown built 2 this week vs Brickell 1: Downtown wins the whole street share.
+        assertEq(vault.cityStreetFunds(DOWNTOWN), 0.03 ether);
+        assertEq(vault.cityStreetFunds(BRICKELL), 0);
         assertEq(vault.streetFunds(), 0);
-        // The next order buys it in Roma's token (VOLTA) for Roma's two buildings, on top of
-        // the residents' share (0.14 split by count: 1/3 Milano, 2/3 Roma).
+        // The next order buys it in Downtown's token (VOLTA) for Downtown's two buildings, on top of
+        // the residents' share (0.14 split by count: 1/3 Brickell, 2/3 Downtown).
         assertTrue(vault.requestBuy());
         assertApproxEqAbs(vault.pending(2, VOLTA_IDX), 0.015 ether + uint256(0.14 ether) / 3, 2);
         assertEq(vault.pending(2, VOLTA_IDX), vault.pending(3, VOLTA_IDX));
@@ -157,7 +157,7 @@ contract CapitaleVaultWeeklyTest is BaseTest {
     }
 
     function test_streetPrizeBoughtInWinnersToken() public {
-        build(alice, VENEZIA);
+        build(alice, MIAMI_BEACH);
         _payStreet(0.2 ether);
         vm.warp(FIRST_DEADLINE);
         assertTrue(vault.requestBuy()); // settles, then buys residents' 0.14 + the 0.03 prize
@@ -166,54 +166,54 @@ contract CapitaleVaultWeeklyTest is BaseTest {
     }
 
     function test_onlyThisWeeksNewBuildingsCount() public {
-        buildMany(alice, ROMA, 3); // Roma: 3 in week 0
+        buildMany(alice, DOWNTOWN, 3); // Downtown: 3 in week 0
         vm.warp(FIRST_DEADLINE);
         vault.settle();
-        build(bob, MILANO); // week 1: Milano 1 new, Roma 0 new
+        build(bob, BRICKELL); // week 1: Brickell 1 new, Downtown 0 new
         _payStreet(0.2 ether);
         vm.warp(vault.weekEnd());
         vault.settle();
-        assertEq(vault.cityStreetFunds(MILANO), 0.03 ether);
-        assertEq(vault.cityStreetFunds(ROMA), 0);
+        assertEq(vault.cityStreetFunds(BRICKELL), 0.03 ether);
+        assertEq(vault.cityStreetFunds(DOWNTOWN), 0);
     }
 
     function test_tiedDistrictsShareByBuildingCount() public {
-        build(alice, MILANO);
-        build(bob, ROMA);
-        build(carol, ROMA); // Roma 2 new
-        build(alice, MILANO); // Milano 2 new: a tie
+        build(alice, BRICKELL);
+        build(bob, DOWNTOWN);
+        build(carol, DOWNTOWN); // Downtown 2 new
+        build(alice, BRICKELL); // Brickell 2 new: a tie
         _payStreet(0.2 ether);
         vm.warp(FIRST_DEADLINE);
         vault.settle();
-        assertEq(vault.cityStreetFunds(MILANO), 0.015 ether);
-        assertEq(vault.cityStreetFunds(ROMA), 0.015 ether);
+        assertEq(vault.cityStreetFunds(BRICKELL), 0.015 ether);
+        assertEq(vault.cityStreetFunds(DOWNTOWN), 0.015 ether);
     }
 
     function test_tieWithDifferentSizesStillEqualPerBuilding() public {
-        buildMany(alice, MILANO, 2); // week 0
+        buildMany(alice, BRICKELL, 2); // week 0
         vm.warp(FIRST_DEADLINE);
         vault.settle();
-        build(alice, MILANO); // week 1: Milano 1 new (3 total)
-        build(bob, ROMA); // week 1: Roma 1 new (1 total) -> tie
+        build(alice, BRICKELL); // week 1: Brickell 1 new (3 total)
+        build(bob, DOWNTOWN); // week 1: Downtown 1 new (1 total) -> tie
         _payStreet(0.2 ether);
         vm.warp(vault.weekEnd());
         vault.settle();
-        // Shared among the 4 buildings of the tied cities: 3/4 Milano, 1/4 Roma.
-        assertEq(vault.cityStreetFunds(MILANO), 0.0225 ether);
-        assertEq(vault.cityStreetFunds(ROMA), 0.0075 ether);
+        // Shared among the 4 buildings of the tied cities: 3/4 Brickell, 1/4 Downtown.
+        assertEq(vault.cityStreetFunds(BRICKELL), 0.0225 ether);
+        assertEq(vault.cityStreetFunds(DOWNTOWN), 0.0075 ether);
     }
 
     function test_nobodyBuiltAllBuiltDistrictsShare() public {
-        build(alice, MILANO);
-        build(bob, ROMA);
+        build(alice, BRICKELL);
+        build(bob, DOWNTOWN);
         vm.warp(FIRST_DEADLINE);
         vault.settle();
         _payStreet(0.2 ether); // week 1, nobody builds
         vm.warp(vault.weekEnd());
         vault.settle();
-        assertEq(vault.cityStreetFunds(MILANO), 0.015 ether);
-        assertEq(vault.cityStreetFunds(ROMA), 0.015 ether);
-        assertEq(vault.cityStreetFunds(NAPOLI), 0); // never built
+        assertEq(vault.cityStreetFunds(BRICKELL), 0.015 ether);
+        assertEq(vault.cityStreetFunds(DOWNTOWN), 0.015 ether);
+        assertEq(vault.cityStreetFunds(WYNWOOD), 0); // never built
     }
 
     function test_noResidentsStreetShareRollsOver() public {
@@ -221,26 +221,26 @@ contract CapitaleVaultWeeklyTest is BaseTest {
         vm.warp(FIRST_DEADLINE);
         vault.settle();
         assertEq(vault.streetFunds(), 0.03 ether); // nobody to win it
-        build(alice, ROMA);
+        build(alice, DOWNTOWN);
         vm.warp(vault.weekEnd());
         vault.settle();
         assertEq(vault.streetFunds(), 0);
-        assertEq(vault.cityStreetFunds(ROMA), 0.03 ether);
+        assertEq(vault.cityStreetFunds(DOWNTOWN), 0.03 ether);
     }
 
     function test_afterCityCompleteSharedCityWide() public {
         vm.warp(START);
-        buildMany(alice, MILANO, 300);
+        buildMany(alice, BRICKELL, 300);
         goPublic();
-        buildMany(alice, MILANO, 2000);
-        buildMany(bob, ROMA, 700);
+        buildMany(alice, BRICKELL, 2000);
+        buildMany(bob, DOWNTOWN, 700);
         assertEq(vault.residents(), 3000);
         _payStreet(1 ether);
         vm.warp(FIRST_DEADLINE);
         vault.settle();
-        // Milano had 2,300 new this week, but the competition is over: everybody shares.
-        assertEq(vault.cityStreetFunds(MILANO), uint256(0.15 ether) * 2300 / 3000);
-        assertEq(vault.cityStreetFunds(ROMA), uint256(0.15 ether) * 700 / 3000);
+        // Brickell had 2,300 new this week, but the competition is over: everybody shares.
+        assertEq(vault.cityStreetFunds(BRICKELL), uint256(0.15 ether) * 2300 / 3000);
+        assertEq(vault.cityStreetFunds(DOWNTOWN), uint256(0.15 ether) * 700 / 3000);
     }
 
     // ─────────── settlement ───────────
@@ -277,12 +277,12 @@ contract CapitaleVaultWeeklyTest is BaseTest {
     }
 
     function test_unspentTaxRollsOver() public {
-        build(alice, MILANO);
+        build(alice, BRICKELL);
         payTax(0.05 ether); // below the minimum order all week
         vault.settle();
         vm.warp(FIRST_DEADLINE);
         vault.settle();
-        // 0.035 residents' share + 0.0075 street prize won by Milano, both still unspent.
+        // 0.035 residents' share + 0.0075 street prize won by Brickell, both still unspent.
         assertEq(vault.residentsFunds() + vault.cityStreetTotal(), 0.0425 ether);
         payTax(0.1 ether);
         assertTrue(vault.requestBuy());
@@ -327,21 +327,21 @@ contract CapitaleVaultWeeklyTest is BaseTest {
     // ─────────── four cities, three tokens ───────────
 
     function test_streetRaceBetweenFourCities() public {
-        build(alice, NAPOLI);
-        build(bob, VENEZIA);
-        build(carol, VENEZIA); // Venezia: 2 new this week, wins
-        build(alice, MILANO);
+        build(alice, WYNWOOD);
+        build(bob, MIAMI_BEACH);
+        build(carol, MIAMI_BEACH); // Miami Beach: 2 new this week, wins
+        build(alice, BRICKELL);
         _payStreet(0.2 ether);
         vm.warp(FIRST_DEADLINE);
         vault.settle();
-        assertEq(vault.cityStreetFunds(VENEZIA), 0.03 ether);
-        assertEq(vault.cityStreetFunds(NAPOLI) + vault.cityStreetFunds(MILANO), 0);
+        assertEq(vault.cityStreetFunds(MIAMI_BEACH), 0.03 ether);
+        assertEq(vault.cityStreetFunds(WYNWOOD) + vault.cityStreetFunds(BRICKELL), 0);
         assertEq(vault.newBuildsOf(0).length, 4);
         assertEq(vault.votesOf(0).length, 3);
     }
 
     function test_votesOnlyForTheThreeTokens() public {
-        build(alice, 3); // a Venezia building votes like any other
+        build(alice, 3); // a Miami Beach building votes like any other
         vm.startPrank(alice);
         vm.expectRevert(CapitaleVault.BadToken.selector);
         vault.vote(ids1(1), 3);

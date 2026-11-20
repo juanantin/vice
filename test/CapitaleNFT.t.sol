@@ -39,10 +39,10 @@ contract CapitaleNFTTest is BaseTest {
     }
 
     function test_plotsNearestFirstPerDistrict() public {
-        build(alice, 1); // id 1, Roma plot 0
-        build(alice, 0); // id 2, Milano plot 0
-        build(alice, 1); // id 3, Roma plot 1
-        build(alice, 1); // id 4, Roma plot 2
+        build(alice, 1); // id 1, Downtown plot 0
+        build(alice, 0); // id 2, Brickell plot 0
+        build(alice, 1); // id 3, Downtown plot 1
+        build(alice, 1); // id 4, Downtown plot 2
         assertEq(nft.buildingOf(1).plot, 0);
         assertEq(nft.buildingOf(2).plot, 0);
         assertEq(nft.buildingOf(3).plot, 1);
@@ -61,7 +61,7 @@ contract CapitaleNFTTest is BaseTest {
         vm.startPrank(alice);
         capitale.approve(address(nft), type(uint256).max);
         vm.expectRevert(CapitaleNFT.BadDistrict.selector);
-        nft.mint(4, 0, 0, type(uint256).max); // cities are 0 Milano .. 3 Venezia
+        nft.mint(4, 0, 0, type(uint256).max); // cities are 0 Brickell .. 3 Miami Beach
         vm.expectRevert(CapitaleNFT.BadStyle.selector);
         nft.mint(0, 3, 0, type(uint256).max);
         vm.stopPrank();

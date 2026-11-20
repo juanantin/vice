@@ -2,11 +2,11 @@
 
 import { ink } from "../lib/theme";
 import { useEffect, useMemo, useState } from "react";
-import { DISTRICTS, DistrictId, EARLY_BIRD_UNITS, MAX_BUILDINGS, TIERS, TOKENS, cityToken, levelForUsd, usdForNextLevel } from "../lib/config";
+import { DISTRICTS, DistrictId, EARLY_BIRD_UNITS, GAME, MAX_BUILDINGS, TICKER, TIERS, TOKENS, VOTE_CITIES, cityToken, levelForUsd, usdForNextLevel } from "../lib/config";
 import { formatCountdown } from "../lib/romeTime";
 import { approve, buildMine, claim, focus, getCity, quoteBuild, useCity, vote } from "../lib/store";
 import { describeError, testActions } from "../lib/chain";
-import { Rosette } from "./Logo";
+import { Sun } from "./Logo";
 
 const fmt = (n: number, d = 0) => n.toLocaleString("en-US", { maximumFractionDigits: d, minimumFractionDigits: d });
 const fmtT = (n: number) =>
@@ -22,9 +22,10 @@ export function useNow(): number {
   return now;
 }
 
-function romeTime(unix: number) {
-  return new Date(unix * 1000).toLocaleString("en-GB", {
-    timeZone: "Europe/Rome",
+/** The weekly deadline (Sunday 20:00 Rome time in the contracts) shown in Miami time. */
+function miamiTime(unix: number) {
+  return new Date(unix * 1000).toLocaleString("en-US", {
+    timeZone: "America/New_York",
     weekday: "short",
     day: "numeric",
     month: "short",
@@ -78,7 +79,7 @@ export function BuildTab() {
     return (
       <div className="tab">
         <div className="success">
-          <div className="big">Palazzo #{done} is up!</div>
+          <div className="big">Hideout #{done} is open!</div>
           <p>It earns a share of every purchase from now on. Claim to make it grow.</p>
           <div className="row">
             <button className="btn" onClick={() => focus(done)}>Show on map</button>
@@ -103,11 +104,11 @@ export function BuildTab() {
         <div>
           <div className="muted">Burn</div>
           <div className="big">{fmt(q.tokens)}</div>
-          <div className="muted small">$CAPITALE</div>
+          <div className="muted small">{TICKER}</div>
         </div>
       </div>
 
-      <h3><span className="step">1</span> Choose a city</h3>
+      <h3><span className="step">1</span> Choose a district</h3>
       <div className="district-grid">
         {DISTRICTS.map((d) => (
           <button key={d.id} className={`district-btn ${district === d.id ? "on" : ""}`} style={{ ["--c" as string]: ink(d), ["--cl" as string]: d.light }} onClick={() => { setDistrict(d.id); setStyle(null); }}>
@@ -120,7 +121,7 @@ export function BuildTab() {
           </button>
         ))}
       </div>
-      <p className="muted small">Each city earns one token: Milano SENT, Roma VOLTA, Venezia VOID, and Napoli whichever token the weekly vote picks. Every palazzo gets the same value from each purchase, whatever its city. Your city also decides where your palazzo stands and your team in the weekly street race.</p>
+      <p className="muted small">Each district earns one token: {DISTRICTS.map((d) => `${d.city} ${d.earns === "vote" ? "whichever token the weekly vote picks" : TOKENS[d.earns].token}`).join(", ")}. Every {GAME.building} gets the same value from each purchase, whatever its district. Your district also decides where your {GAME.building} stands and your crew in the weekly turf race.</p>
 
       {district !== null && (
         <>
@@ -146,7 +147,7 @@ export function BuildTab() {
           <h3><span className="step">4</span> Build</h3>
           <div className="row">
             <button className="btn" disabled={city.approved || !!pending} onClick={() => run("approve", approve)}>
-              {city.approved ? "Approved" : pending === "approve" ? "Confirm in wallet…" : "Approve $CAPITALE"}
+              {city.approved ? "Approved" : pending === "approve" ? "Confirm in wallet…" : `Approve ${TICKER}`}
             </button>
             <button className="btn primary" disabled={!city.approved || !invOk || full || !!pending || !!unavailable || short} onClick={() => run("build", async () => {
               const id = await buildMine(district, style, invNum || 0, maxBurnWei);
@@ -155,12 +156,12 @@ export function BuildTab() {
                 setTimeout(() => focus(id), 600);
               }
             })}>
-              {pending === "build" ? "Building…" : `Build (max ${fmt(maxBurn)})`}
+              {pending === "build" ? "Moving in…" : `Move in (max ${fmt(maxBurn)})`}
             </button>
           </div>
           <p className="muted small">Approve once. The build reverts if the burn would be above your max (quote + 2%). Tokens go to the burn address.</p>
           {unavailable && <p className="warn small">{unavailable}</p>}
-          {short && <p className="warn small">Not enough test $CAPITALE: get some in the Test lab.</p>}
+          {short && <p className="warn small">Not enough test {TICKER}: get some in the Test lab.</p>}
           <TxError error={error} />
         </>
       )}
@@ -170,26 +171,39 @@ export function BuildTab() {
 }
 
 function StyleIcon({ style }: { district: number; style: number }) {
-  // Line-drawn, engraving-style icons in the city's ink (set by CSS via currentColor).
-  const roof =
-    style === 1 ? (
-      <path d="M6 20 L20 8 L34 20" />
-    ) : style === 2 ? (
-      <path d="M11 20 A9 9 0 0 1 29 20 M20 11 V6" />
-    ) : (
-      <path d="M20 4 V10 M14 10 H26" />
+  // Line icons in the district's ink (set by CSS via currentColor): tower, deco block, pool low-rise.
+  if (style === 0) {
+    return (
+      <svg viewBox="0 0 40 44" width="44" height="48" aria-hidden fill="none" stroke="currentColor" strokeWidth="1.2">
+        <rect x="13" y="8" width="14" height="32" />
+        <path d="M13 13 H27 M13 18 H27 M13 23 H27 M13 28 H27 M13 33 H27" opacity="0.6" />
+        <path d="M20 8 V2" />
+        <path d="M2 40 H38" opacity="0.5" />
+      </svg>
     );
+  }
+  if (style === 1) {
+    return (
+      <svg viewBox="0 0 40 44" width="44" height="48" aria-hidden fill="none" stroke="currentColor" strokeWidth="1.2">
+        <rect x="8" y="16" width="24" height="24" />
+        <path d="M12 16 V12 H28 V16 M17 12 V4 H21 V12" />
+        <path d="M8 24 H32 M8 32 H32" opacity="0.7" />
+        <path d="M2 40 H38" opacity="0.5" />
+      </svg>
+    );
+  }
   return (
     <svg viewBox="0 0 40 44" width="44" height="48" aria-hidden fill="none" stroke="currentColor" strokeWidth="1.2">
-      <rect x="8" y={style === 0 ? 10 : 20} width="24" height={style === 0 ? 30 : 20} />
-      {roof}
-      <path d="M13 28 h5 M22 28 h5 M13 33 h5 M22 33 h5" opacity="0.7" />
+      <rect x="6" y="24" width="28" height="16" />
+      <path d="M10 24 Q14 21 18 24" opacity="0.8" />
+      <path d="M28 24 Q27 16 29 10 M29 10 Q24 9 22 12 M29 10 Q34 9 36 12 M29 10 Q29 6 32 5" />
+      <path d="M11 30 h5 M20 30 h5 M11 35 h5 M20 35 h5" opacity="0.7" />
       <path d="M2 40 H38" opacity="0.5" />
     </svg>
   );
 }
 
-// ─────────── My Palazzo ───────────
+// ─────────── My hideouts ───────────
 
 export function MyPalazzoTab() {
   const city = useCity();
@@ -202,7 +216,7 @@ export function MyPalazzoTab() {
   if (mine.length === 0) {
     return (
       <div className="tab">
-        <p>You don&apos;t own a palazzo yet. Head to <b>Build</b> to put one on the map.</p>
+        <p>You don&apos;t own a {GAME.building} yet. Open <b>Move in</b> to put one on the map.</p>
       </div>
     );
   }
@@ -255,7 +269,7 @@ export function MyPalazzoTab() {
                 <span className="lvl">L{lvl}</span>
                 <span>
                   <b>#{b.id}</b> {D.city} · {D.styles[b.style]}
-                  <span className="muted small block">{D.city} plot {b.plot + 1}</span>
+                  <span className="muted small block">{D.crew} · plot {b.plot + 1}</span>
                 </span>
               </button>
               <div className="bar"><i style={{ width: `${pct}%` }} /></div>
@@ -297,9 +311,9 @@ export function TownHallTab() {
       <div className="countdown">
         <div className="muted">Vote closes in</div>
         <div className="big mono">{formatCountdown(city.weekEnd - now)}</div>
-        <div className="muted small">Sunday 20:00 Rome time · {romeTime(city.weekEnd)}</div>
+        <div className="muted small">Every Sunday, {miamiTime(city.weekEnd)} Miami time</div>
       </div>
-      <p>Each building, in any city, has one vote per week. The vote picks the token Napoli earns next week; Milano, Roma and Venezia keep their own token. A tie or no votes keeps the current token.</p>
+      <p>Each {GAME.building}, in any district, has one vote per week. The vote picks the token {VOTE_CITIES().map((d) => d.city).join(" and ")} earns next week; the other districts keep their own token. A tie or no votes keeps the current token.</p>
       <div className="votes">
         {TOKENS.map((d) => {
           const v = city.votes[d.id] ?? 0;
@@ -308,7 +322,7 @@ export function TownHallTab() {
             <div key={d.id} className="vote-row" style={{ ["--c" as string]: ink(d) }}>
               <div className="vote-label">
                 <b>{d.token}</b> <span className="muted small">{d.symbol}</span>
-                {city.currentToken === d.id && <span className="tag">NAPOLI NOW</span>}
+                {city.currentToken === d.id && <span className="tag">{VOTE_CITIES().map((c) => c.city.toUpperCase()).join(" + ")} NOW</span>}
                 {v === max && v > 0 && leaders === 1 && <span className="tag lead">LEADING</span>}
               </div>
               <div className="bar big"><i style={{ width: `${pct}%` }} /><span>{fmt(v)} · {pct.toFixed(0)}%</span></div>
@@ -335,8 +349,8 @@ export function RankingsTab() {
   const inviters = useMemo(() => [...city.buildings].filter((b) => b.invites > 0).sort((a, b) => b.invites - a.invites).slice(0, 5), [city.buildings]);
   return (
     <div className="tab">
-      <h3>Street competition · this week</h3>
-      <p className="muted small">The city with the most new buildings wins this week&apos;s 15% street pool (paid in this week&apos;s token), shared by all its buildings. Ends in {formatCountdown(city.weekEnd - now)}.</p>
+      <h3>Turf race · this week</h3>
+      <p className="muted small">The district with the most new {GAME.buildings} wins this week&apos;s 15% street pool (bought in that district&apos;s token), shared by all its {GAME.buildings}. Ends in {formatCountdown(city.weekEnd - now)}.</p>
       <div className="votes">
         {DISTRICTS.map((d) => (
           <div key={d.id} className="vote-row" style={{ ["--c" as string]: ink(d) }}>
@@ -348,7 +362,7 @@ export function RankingsTab() {
           </div>
         ))}
       </div>
-      <h3>Tallest buildings</h3>
+      <h3>Tallest hideouts</h3>
       <ol className="rank">
         {tallest.map((b, i) => (
           <li key={b.id} onClick={() => focus(b.id)}>
@@ -395,7 +409,7 @@ export function TreasuryTab() {
         <i style={{ flex: 15, background: "#d9b45a" }}>15% street</i>
         <i style={{ flex: 15, background: "#94b7a7" }}>15% ops</i>
       </div>
-      <p className="muted small">$CAPITALE trades on Volta, paired with $VOLTA. The creator share of its trading fee is paid to the vault in VOLTA. 85% buys this week&apos;s token (VOLTA itself is simply kept); 15% stays in VOLTA for operations (2-of-3 multisig).</p>
+      <p className="muted small">{TICKER} trades on Volta, paired with $VOLTA. The creator share of its trading fee is paid to the vault in VOLTA. 70% buys each district&apos;s token for its residents and 15% the turf race winner&apos;s (VOLTA itself is simply kept); 15% stays in VOLTA for operations (2-of-3 multisig).</p>
       <h3>Waiting to buy</h3>
       <div className="stat-grid">
         <div><span className="muted">Residents</span><b>{fmt(city.residentsFunds)} VOLTA</b></div>
@@ -443,24 +457,24 @@ export function TreasuryTab() {
   );
 }
 
-// ─────────── Il Sindaco ───────────
+// ─────────── The Mayor ───────────
 
 export function SindacoTab() {
   const city = useCity();
   return (
     <div className="tab">
       <div className="sindaco-hero">
-        <Rosette size={72} />
+        <Sun size={72} />
         <div>
-          <div className="big">Il Sindaco</div>
-          <div className="muted">Palazzo del Sindaco · building #0</div>
+          <div className="big">The Mayor</div>
+          <div className="muted">City Hall on Watson Island · building #0</div>
         </div>
       </div>
-      <p>Benvenuti a Capitale! The Mayor&apos;s palazzo stands at the centre of Italy. Every district grows outward from its city, and the city fills up from the centre to the coast.</p>
+      <p>Welcome to {GAME.name}! The Mayor&apos;s hall stands on Watson Island, in the middle of the bay between the mainland and the beach. Every district grows outward from its landmark: Brickell&apos;s towers, Downtown&apos;s Freedom Tower, Wynwood&apos;s murals and Ocean Drive.</p>
       <ul className="rules">
         <li>Building #0 is minted at launch. It earns <b>no</b> rewards and has <b>no</b> vote.</li>
         <li>The team runs the keeper and receives only the 15% ops share. It cannot touch the vault.</li>
-        <li>{fmt(city.buildings.length)} of {fmt(MAX_BUILDINGS)} palazzi built. When the city is full, building closes forever.</li>
+        <li>{fmt(city.buildings.length)} of {fmt(MAX_BUILDINGS)} {GAME.buildings} open. When the city is full, building closes forever.</li>
       </ul>
       <h3>Prices</h3>
       <table className="table">
@@ -476,7 +490,7 @@ export function SindacoTab() {
         <li>X / Telegram: announced at launch.</li>
         <li>Contracts are open source; their ABIs are published at launch (Elysium explorers cannot verify contracts yet).</li>
       </ul>
-      <p className="muted small">Capitale is an experimental game. Reward tokens can lose value. Contracts are not yet audited. Nothing here is financial advice.</p>
+      <p className="muted small">{GAME.name} is an experimental game. Reward tokens can lose value. Contracts are not yet audited. Nothing here is financial advice.</p>
     </div>
   );
 }

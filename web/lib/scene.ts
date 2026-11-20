@@ -6,31 +6,30 @@ import {
   drawBoat,
   drawBuilding,
   drawCloud,
-  drawColosseum,
-  drawDuomo,
+  drawCruiseShip,
+  drawDecoHotel,
   drawEmptyPlot,
-  drawGondola,
+  drawFreedomTower,
+  drawGlassTowers,
+  drawLighthouse,
   drawMayor,
+  drawMurals,
   drawTree,
-  drawVesuvius,
-  drawCampanile,
   drawCottage,
   floorsForLevel,
   districtPalette,
-  rosette,
   V,
   cityInk,
-  mix,
 } from "./art";
 import { DISTRICTS, levelForUsd } from "./config";
-import { BUILDING_SCALE, COMPASS, DISTRICT_PLACES, GRATICULE, LANDMARK_SCALE, NEIGHBOURS, ORNAMENTS, PLACES, PLOT_SPACING, Pt, RINGS, TILT, WORLD, onAnyLand, onLand, plotPosition } from "./plots";
+import { BUILDING_SCALE, DISTRICT_PLACES, LANDMARK_SCALE, PLACES, PLAZA, PLOT_SPACING, Pt, RINGS, ROADS, TILT, WATER, WORLD, isParkland, onAnyLand, onLand, plotPosition } from "./plots";
 
 /** Textures are baked at this resolution so they stay crisp when zoomed in. */
 const RES = 3;
 const K = 1 / RES;
 import { ui, type Building } from "./store";
 
-// Volta palette: deep forest sea, forest land, mint linework.
+// Miami night: navy bay, violet land, neon linework (golden hour in the light theme).
 // Colours are read from the theme palette (V) when things are drawn, not at load.
 const inks = () => [0, 1, 2, 3].map(cityInk).concat([V.mint, V.ivory]);
 
@@ -258,181 +257,93 @@ export class CityScene {
 
   private drawIsland(): Container {
     const c = new Container();
-    // Engraved sea: fine horizontal lines, like the sky in Volta's frieze.
+    // The bay: faint horizontal swell lines.
     const sea = new Graphics();
-    for (let y = -900; y < WORLD.height + 900; y += 9) sea.moveTo(-1200, y).lineTo(WORLD.width + 1200, y);
-    sea.stroke({ width: 0.8, color: V.ornate ? V.mint : V.surf, alpha: V.ornate ? V.lineAlpha : 0.12 });
-    const decor = this.drawSeaDecor();
-    // Coast drawn as layered contour lines (a thin mint line on each band's edge).
+    for (let y = -2600; y < WORLD.height + 2600; y += 10) sea.moveTo(-3600, y).lineTo(WORLD.width + 3600, y);
+    sea.stroke({ width: 0.8, color: V.surf, alpha: 0.05 });
+    // Shoreline glow: soft bands around every coast, a thin line on each band's edge.
     const contours = new Graphics();
     for (const [w, alpha] of [
-      [86, 0.12],
-      [60, 0.2],
-      [36, 0.32],
+      [54, 0.1],
+      [32, 0.18],
+      [16, 0.3],
     ] as const) {
-      for (const ring of RINGS) contours.poly(ring.flat()).stroke({ width: w, color: V.ornate ? V.mint : V.surf, alpha: V.ornate ? alpha : alpha * 2.2, join: "round" });
+      for (const ring of RINGS) contours.poly(ring.flat()).stroke({ width: w, color: V.surf, alpha, join: "round" });
       for (const ring of RINGS) contours.poly(ring.flat()).stroke({ width: w - 3, color: V.void, join: "round" });
     }
     const cliff = new Graphics();
     const land = new Graphics();
-    const landMask = new Graphics();
     for (const ring of RINGS) {
-      const flat = ring.flat();
-      cliff.poly(ring.flatMap(([x, y]) => [x, y + 14])).fill(V.cliff).stroke({ width: 6, color: V.cliff, join: "round" });
-      land.poly(flat).fill(V.forest).stroke({ width: 2.2, color: V.mint, join: "round" });
-      landMask.poly(flat).fill(0xffffff);
+      cliff.poly(ring.flatMap(([x, y]) => [x, y + 7])).fill(V.cliff).stroke({ width: 3, color: V.cliff, join: "round" });
+      land.poly(ring.flat()).fill(V.forest).stroke({ width: 1.8, color: V.mint, join: "round" });
     }
-    // Diagonal hatching across the land, clipped to the coastline.
-    const hatch = new Graphics();
-    for (let x = -WORLD.height; x < WORLD.width; x += 14) hatch.moveTo(x, 0).lineTo(x + WORLD.height, WORLD.height);
-    hatch.stroke({ width: 0.9, color: V.mint, alpha: V.lineAlpha * 1.15 });
-    hatch.mask = landMask;
-    if (!V.ornate) hatch.visible = false; // Riviera: flat sunlit land, no engraving
-    c.addChild(sea, decor, contours, cliff, land, landMask, hatch, this.drawOrnaments());
-    // A guilloche rosette in each city's ink around its landmark, and a mint one for the Mayor.
-    const rings: [Pt, number][] = [
+    // The Miami River, the canals, the lakes and the marinas.
+    const water = new Graphics();
+    for (const ring of WATER) water.poly(ring.flat()).fill(V.void).stroke({ width: 1.2, color: V.surf, alpha: 0.55, join: "round" });
+    // Expressways and causeways glow cyan, boulevards pink (white roads at golden hour).
+    const roads = new Graphics();
+    const styles: Record<string, [number, number, number, number]> = {
+      secondary: [2.4, 0.9, V.street, 0.3],
+      primary: [4, 1.3, V.street, 0.5],
+      trunk: [6.5, 1.8, V.road, 0.65],
+      motorway: [7.5, 2.2, V.road, 0.75],
+    };
+    const night = V.ivory === 0xfff0f6;
+    for (const [cls, [w, core, color, alpha]] of Object.entries(styles)) {
+      const lines = ROADS[cls] ?? [];
+      const trace = () => {
+        for (const l of lines) {
+          roads.moveTo(l[0][0], l[0][1]);
+          for (let i = 1; i < l.length; i++) roads.lineTo(l[i][0], l[i][1]);
+        }
+      };
+      trace();
+      roads.stroke({ width: w, color: night ? color : V.cliff, alpha: night ? alpha * 0.3 : alpha * 0.6, cap: "round", join: "round" });
+      trace();
+      roads.stroke({ width: night ? core : core * 1.6, color, alpha: night ? alpha : 0.95, cap: "round", join: "round" });
+    }
+    // Land beyond the playable map fades into the night (or the haze).
+    const edge = new Graphics();
+    const M = 4000;
+    edge.rect(-M, -M, WORLD.width + 2 * M, M - 40).rect(-M, WORLD.height + 30, WORLD.width + 2 * M, M).rect(-M, -40, M - 30, WORLD.height + 70).rect(WORLD.width + 30, -40, M, WORLD.height + 70);
+    edge.fill({ color: V.void, alpha: 0.55 });
+    c.addChild(sea, contours, cliff, land, water, roads, edge);
+    // A soft plaza of light in each district's ink around its landmark, and one for the Mayor.
+    const plazas: [Pt, number][] = [
       ...DISTRICT_PLACES.map((k, i) => [PLACES[k], cityInk(i)] as [Pt, number]),
       [PLACES.mayor, V.mint],
     ];
-    for (const [[x, y], color] of rings) {
+    for (const [[x, y], color] of plazas) {
       const g = new Graphics();
-      if (!V.ornate) {
-        // Riviera: a soft plaza of light in the city's colour instead of a guilloche rosette.
-        g.circle(0, 0, 165).fill({ color, alpha: 0.1 });
-        g.circle(0, 0, 120).fill({ color, alpha: 0.12 });
-        g.circle(0, 0, 165).stroke({ width: 2, color, alpha: 0.5 });
-        g.position.set(x, y);
-        g.scale.set(1, TILT);
-        c.addChild(g);
-        continue;
-      }
-      g.circle(0, 0, 150).fill({ color, alpha: 0.06 });
-      rosette(g, 0, 0, 150, 24, color, 1.4, 0.55);
-      rosette(g, 0, 0, 118, 18, color, 1, 0.35);
-      g.circle(0, 0, 150).stroke({ width: 1.6, color, alpha: 0.8 });
-      g.circle(0, 0, 156).stroke({ width: 0.8, color, alpha: 0.5 });
+      g.circle(0, 0, PLAZA).fill({ color, alpha: 0.1 });
+      g.circle(0, 0, PLAZA * 0.72).fill({ color, alpha: 0.12 });
+      g.circle(0, 0, PLAZA).stroke({ width: 2, color, alpha: 0.55 });
       g.position.set(x, y);
       g.scale.set(1, TILT);
       c.addChild(g);
     }
-    return c;
-  }
-
-  /** Behind the island: guilloche wave ribbons, the 1° graticule and the neighbours' coasts. */
-  private drawSeaDecor(): Container {
-    const c = new Container();
-    // Banknote-style guilloche ribbons: interlaced sine waves across the open sea.
-    const waves = new Graphics();
-    const x0 = -1200;
-    const x1 = WORLD.width + 1200;
-    for (const [yc, amp, len] of [
-      [WORLD.height * 0.62, 34, 260],
-      [WORLD.height * 0.93, 26, 210],
-      [WORLD.height * 0.18, 22, 300],
-    ] as const) {
-      for (let k = 0; k < 7; k++) {
-        const phase = (k / 7) * Math.PI * 2;
-        for (let x = x0; x <= x1; x += 8) {
-          const y = yc + Math.sin((x / len) * Math.PI * 2 + phase) * amp + Math.sin((x / (len * 0.37)) * Math.PI * 2 - phase) * amp * 0.25;
-          if (x === x0) waves.moveTo(x, y);
-          else waves.lineTo(x, y);
-        }
-      }
-    }
-    waves.stroke({ width: 0.8, color: V.mint, alpha: V.lineAlpha * 2.2 });
-    if (!V.ornate) waves.visible = false;
-    // 1° latitude / longitude lines, like an engraved chart.
-    const grid = new Graphics();
-    for (const line of GRATICULE) grid.poly(line.flat(), false);
-    grid.stroke({ width: 0.9, color: V.mint, alpha: V.lineAlpha * 2.4 });
-    if (!V.ornate) grid.visible = false;
-    // Neighbouring coasts: faint land, one echo contour, no buildings.
-    const near = new Graphics();
-    for (const ring of NEIGHBOURS) near.poly(ring.flat()).stroke({ width: 18, color: V.mint, alpha: 0.07, join: "round" });
-    for (const ring of NEIGHBOURS) near.poly(ring.flat()).fill({ color: mix(V.void, V.forest, 0.55) }).stroke({ width: 1, color: V.mint, alpha: 0.45, join: "round" });
-    const nearHatch = new Graphics();
-    for (let x = -WORLD.height - 1200; x < WORLD.width + 1200; x += 11) nearHatch.moveTo(x, -900).lineTo(x + WORLD.height + 1800, WORLD.height + 900);
-    nearHatch.stroke({ width: 0.7, color: V.mint, alpha: V.lineAlpha * 1.6 });
-    const nearMask = new Graphics();
-    for (const ring of NEIGHBOURS) nearMask.poly(ring.flat()).fill(0xffffff);
-    nearHatch.mask = nearMask;
-    if (!V.ornate) nearHatch.visible = false;
-    c.addChild(waves, grid, near, nearMask, nearHatch);
-    return c;
-  }
-
-  /** In open sea: a guilloche compass rose and a few rosette ornaments. */
-  private drawOrnaments(): Container {
-    const c = new Container();
-    if (!V.ornate) return c; // Riviera: open sunlit sea
-    for (const [x, y] of ORNAMENTS) {
-      const g = new Graphics();
-      rosette(g, 0, 0, 64, 20, V.mint, 0.8, 0.35);
-      rosette(g, 0, 0, 44, 14, V.mint, 0.6, 0.25);
-      g.circle(0, 0, 70).stroke({ width: 0.8, color: V.mint, alpha: 0.3 });
-      g.position.set(x, y);
-      g.scale.set(1, TILT);
-      c.addChild(g);
-    }
-    const g = new Graphics();
-    rosette(g, 0, 0, 120, 36, V.mint, 1, 0.45);
-    rosette(g, 0, 0, 88, 24, V.mint, 0.8, 0.35);
-    g.circle(0, 0, 130).stroke({ width: 1.2, color: V.mint, alpha: 0.6 });
-    g.circle(0, 0, 136).stroke({ width: 0.6, color: V.mint, alpha: 0.45 });
-    for (let k = 0; k < 32; k++) {
-      const a = (k / 32) * Math.PI * 2;
-      const r1 = k % 8 === 0 ? 142 : 136;
-      g.moveTo(Math.cos(a) * 130, Math.sin(a) * 130).lineTo(Math.cos(a) * r1, Math.sin(a) * r1);
-    }
-    g.stroke({ width: 0.8, color: V.mint, alpha: 0.6 });
-    // Eight-point star: long N/S/E/W points, short diagonals.
-    const star = (len: number, w: number, rot: number, alpha: number) => {
-      for (let q = 0; q < 4; q++) {
-        const a = rot + (q * Math.PI) / 2;
-        const tip = [Math.cos(a) * len, Math.sin(a) * len];
-        const l = [Math.cos(a + Math.PI / 2) * w, Math.sin(a + Math.PI / 2) * w];
-        const r = [Math.cos(a - Math.PI / 2) * w, Math.sin(a - Math.PI / 2) * w];
-        g.poly([0, 0, l[0], l[1], tip[0], tip[1]]).fill({ color: V.mint, alpha });
-        g.poly([0, 0, r[0], r[1], tip[0], tip[1]]).fill({ color: mix(V.mint, V.void, 0.45), alpha });
-      }
-    };
-    star(84, 9, Math.PI / 4, 0.5);
-    star(150, 14, -Math.PI / 2, 0.85);
-    g.circle(0, 0, 6).fill(V.void).stroke({ width: 1, color: V.mint });
-    g.position.set(COMPASS[0], COMPASS[1]);
-    g.scale.set(1, TILT);
-    c.addChild(g);
     return c;
   }
 
   private makeLandmarks() {
-    const mk = (key: string, draw: (g: Graphics) => void, p: Pt, realKey: string, width: number) => {
-      const real = this.realTexture(realKey);
-      const baked = real
-        ? this.bake(`real_${realKey}`, (c) => {
-            const s = new Sprite(real);
-            s.anchor.set(0.5, 0.85);
-            s.scale.set(width / real.width);
-            c.addChild(s);
-          })
-        : this.bake(key, (c) => {
-            const g = new Graphics();
-            draw(g);
-            c.addChild(g);
-          });
-      this.place(baked, p, LANDMARK_SCALE);
+    const mk = (key: string, draw: (g: Graphics) => void, p: Pt, scale = LANDMARK_SCALE) => {
+      const baked = this.bake(key, (c) => {
+        const g = new Graphics();
+        draw(g);
+        c.addChild(g);
+      });
+      this.place(baked, p, scale);
     };
-    mk("duomo", drawDuomo, PLACES.milano, "landmark_0", 110);
-    mk("colosseum", drawColosseum, PLACES.roma, "landmark_1", 110);
-    const [vx, vy] = PLACES.napoli;
-    mk("vesuvius", drawVesuvius, [vx + 30, vy + 20], "landmark_2", 150);
-    mk("campanile", drawCampanile, PLACES.venezia, "landmark_3", 90);
-    mk("mayor", drawMayor, PLACES.mayor, "mayor", 80);
-    if (!this.realTexture("landmark_2")) this.emitters.push({ p: [vx + 30, vy + 20 - 78 * LANDMARK_SCALE], rate: 2.2, acc: 0, big: true });
+    mk("towers", drawGlassTowers, PLACES.brickell);
+    mk("freedom", drawFreedomTower, PLACES.downtown);
+    mk("murals", drawMurals, PLACES.wynwood);
+    mk("deco", drawDecoHotel, PLACES.miamibeach);
+    mk("mayor", drawMayor, PLACES.mayor);
+    mk("lighthouse", drawLighthouse, PLACES.lighthouse, 2.6);
   }
 
-  /** Fill every empty bit of land with countryside: cottages, cypresses and olive trees.
-   *  Scenery makes way wherever a real building is placed. */
+  /** Fill every empty bit of land with neighbourhood: pastel houses and palms (only palms on
+   *  the keys and the port). Scenery makes way wherever a real building is placed. */
   private makeTrees() {
     const kinds = [0, 1, 2].map((k) => this.bake(`tree${k}`, (c) => {
       const g = new Graphics();
@@ -447,19 +358,17 @@ export class CityScene {
     let seed = 7;
     const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
     const step = PLOT_SPACING * 0.62;
-    const plazas = [PLACES.mayor, ...DISTRICT_PLACES.map((k) => PLACES[k])];
+    const plazas = [PLACES.mayor, PLACES.lighthouse, ...DISTRICT_PLACES.map((k) => PLACES[k])];
     for (let y = 10, row = 0; y < WORLD.height; y += step * TILT * 0.9, row++) {
       for (let x = 10 + (row % 2) * step * 0.5; x < WORLD.width; x += step) {
         const p: Pt = [x + (rnd() - 0.5) * step * 0.6, y + (rnd() - 0.5) * step * 0.4];
         if (!onLand(p[0], p[1]) || !onLand(p[0] + 12, p[1]) || !onLand(p[0] - 12, p[1])) continue;
-        if (plazas.some((c) => Math.hypot(p[0] - c[0], (p[1] - c[1]) / TILT) < 150)) continue;
-        const r = rnd();
-        const baked = r < 0.42 ? cottages[Math.floor(rnd() * 3)] : kinds[Math.floor(rnd() * 3)];
-        const s = this.place(baked, p, r < 0.42 ? 3 : 2.6 + rnd() * 0.8);
-        // A few cottages have a smoking chimney.
-        if (r < 0.42 && rnd() < 0.06 && this.emitters.length < 40) {
-          this.emitters.push({ p: [p[0] + 4, p[1] - 21 * 3], rate: 0.5, acc: rnd(), big: false });
-        }
+        if (plazas.some((c) => Math.hypot(p[0] - c[0], (p[1] - c[1]) / TILT) < PLAZA + 15)) continue;
+        const park = isParkland(p[0], p[1]);
+        if (park && rnd() < 0.45) continue;
+        const r = park ? 1 : rnd();
+        const baked = r < 0.34 ? cottages[Math.floor(rnd() * 3)] : kinds[Math.floor(rnd() * 3)];
+        const s = this.place(baked, p, r < 0.34 ? 2.6 : 2.4 + rnd() * 0.8);
         const idx = this.trees.push({ s, p }) - 1;
         const key = `${Math.floor(p[0] / 60)},${Math.floor(p[1] / 60)}`;
         (this.treeGrid.get(key) ?? this.treeGrid.set(key, []).get(key)!).push(idx);
@@ -536,22 +445,24 @@ export class CityScene {
       layer.addChild(s);
       this.boats.push({ s, c, r, a: Math.random() * Math.PI * 2, speed: (0.04 + Math.random() * 0.05) * (Math.random() < 0.5 ? -1 : 1), sq: TILT });
     }
-    // gondola in the Venetian lagoon
-    const v = PLACES.venezia;
-    for (let k = 0; k < 400; k++) {
-      const c: Pt = [v[0] + 20 + Math.random() * 90, v[1] - 40 + Math.random() * 90];
-      if (!orbitOk(c, 30)) continue;
-      const tex = this.bake("gondola", (cc) => {
-        const g = new Graphics();
-        drawGondola(g);
-        cc.addChild(g);
-      });
-      const s = new Sprite(tex.texture);
-      s.anchor.set(tex.ax, tex.ay);
-      s.scale.set(K * 3.2);
+    // Cruise ships moored along PortMiami's south quay (Government Cut), bobbing gently.
+    const ship = this.bake("cruise", (cc) => {
+      const g = new Graphics();
+      drawCruiseShip(g);
+      cc.addChild(g);
+    });
+    const [px, py] = PLACES.port;
+    let placed = 0;
+    for (let k = 0; k < 600 && placed < 2; k++) {
+      const c: Pt = [px - 160 + Math.random() * 320, py + 20 + Math.random() * 80];
+      if (!this.seaPoint(c, 18) || !this.seaPoint([c[0] - 45, c[1]], 10) || !this.seaPoint([c[0] + 45, c[1]], 10)) continue;
+      if (this.boats.some((b) => b.r === 0 && Math.hypot(b.c[0] - c[0], b.c[1] - c[1]) < 120)) continue;
+      const s = new Sprite(ship.texture);
+      s.anchor.set(ship.ax, ship.ay);
+      s.scale.set(K * 2.4);
       layer.addChild(s);
-      this.boats.push({ s, c, r: 30, a: 0, speed: 0.12, sq: TILT });
-      break;
+      this.boats.push({ s, c, r: 0, a: 0, speed: 0, sq: TILT });
+      placed++;
     }
   }
 
@@ -665,8 +576,8 @@ export class CityScene {
     const places = cities.map((i) => PLACES[DISTRICT_PLACES[i]]);
     for (const [x, y] of places) {
       const ring = new Graphics();
-      ring.circle(0, 0, 150).stroke({ width: 3, color });
-      rosette(ring, 0, 0, 150, 24, color, 1.2, 0.8);
+      ring.circle(0, 0, PLAZA).stroke({ width: 3, color });
+      ring.circle(0, 0, PLAZA * 0.8).stroke({ width: 1.5, color, alpha: 0.7 });
       ring.position.set(x, y);
       ring.scale.set(0.5, 0.5 * TILT);
       this.fx.addChild(ring);
@@ -676,7 +587,7 @@ export class CityScene {
         ring.alpha = 1 - p;
       }, () => ring.destroy());
       for (let k = 0; k < 18; k++) {
-        this.spawn(x + (Math.random() - 0.5) * 220, y - Math.random() * 120, (Math.random() - 0.5) * 40, -90 - Math.random() * 90, 0, 1.6, color, 1, 0, this.star, 0.9);
+        this.spawn(x + (Math.random() - 0.5) * PLAZA * 1.5, y - Math.random() * 120, (Math.random() - 0.5) * 40, -90 - Math.random() * 90, 0, 1.6, color, 1, 0, this.star, 0.9);
       }
     }
     const sprites = [...this.sprites.entries()].filter(([id]) => cities.includes(this.spriteCity.get(id) ?? -1)).map(([, sp]) => sp);
@@ -797,12 +708,18 @@ export class CityScene {
   }
 
 
+  /** The four districts and the Mayor, with room for the banners: the opening view. */
   private landBounds() {
-    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
-    for (const r of RINGS) for (const [x, y] of r) {
-      x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y);
-    }
-    return { x0, y0: y0 - 160, x1, y1: y1 + 30 }; // room for the northern banners and the cliff
+    const pts = [PLACES.mayor, ...DISTRICT_PLACES.map((k) => PLACES[k])];
+    const xs = pts.map((p) => p[0]);
+    const ys = pts.map((p) => p[1]);
+    return { x0: Math.min(...xs) - 330, y0: Math.min(...ys) - 420, x1: Math.max(...xs) + 260, y1: Math.max(...ys) + 330 };
+  }
+
+  /** Scale at which the whole playable map fits: the furthest the camera zooms out. */
+  private wholeScale() {
+    const { w, h, top, bottom } = this.viewport();
+    return Math.min((w - 16) / WORLD.width, (h - top - bottom) / WORLD.height);
   }
 
   fitScale = 0.2;
@@ -840,7 +757,7 @@ export class CityScene {
   }
 
   private zoomAt(sx: number, sy: number, next: number) {
-    const s = Math.max(this.fitScale * 0.8, Math.min(this.fitScale * 12, next));
+    const s = Math.max(Math.min(this.fitScale, this.wholeScale()) * 0.9, Math.min(this.fitScale * 8, next));
     const k = s / this.world.scale.x;
     this.world.position.set(sx - (sx - this.world.x) * k, sy - (sy - this.world.y) * k);
     this.world.scale.set(s);

@@ -116,3 +116,26 @@ Change any of these by asking Claude; none is hard to revisit before deployment.
 - Look: Volta's engraved-banknote style (see CLAUDE.md). The old toy sprites are not used.
 - Test mode deploys on Elysium itself (no public testnet; gas costs a little real HYPE),
   with test tokens tVOLTA/tSENT/tVOID/tCAPITALE and a test fee escrow that simulates trading.
+
+# Miami (20 Nov 2026) — this repo, `juanantin/vice`
+- Fresh copy of the Volta/Elysium Capitale; the Italy version stays in `juanantin/capitale-volta`.
+- Juan: "the map of Miami ... instead of cities make it Miami Beach, Brickell, Wynwood and Downtown."
+- Map: real geography only. Land, the bay/ocean, rivers/lakes and the main roads/causeways come
+  from OpenStreetMap via Overture Maps (open data on AWS S3; the usual OSM/Census/Natural Earth
+  hosts are blocked by this environment's network policy). `web/scripts/fetch-miami.py` writes a
+  small clipped extract (`web/scripts/data/miami-src.geojson`, committed), `build-miami.mjs`
+  projects it with d3-geo into `web/lib/miami.json`. Attribution is shown on the map and in the
+  white paper (ODbL). Nothing is traced or copied from any video game's map.
+- Districts keep the old index order so tests and deploy values line up: 0 Brickell (SENT, was
+  Milano), 1 Downtown (VOLTA, was Roma), 2 Wynwood (follows the vote, was Napoli), 3 Miami Beach
+  (VOID, was Venezia). Suggested mapping, Juan may change it (`cityTokens` at deploy, `earns` in
+  `web/lib/config.ts`).
+- The Mayor's building (#0) stands on Watson Island, between the mainland and the beach.
+  Fisher Island, Virginia Key, Key Biscayne and PortMiami are scenery (palms, lighthouse,
+  cruise ships), not plots.
+- Contract logic unchanged. CapitaleNFT's tokenURI strings now say Brickell / Downtown / Wynwood /
+  Miami Beach, "THE MAYOR", "Watson Island", trait "District", and Miami colours.
+- The weekly deadline stays Sunday 20:00 Rome time in the contracts (RomeTime); the site shows
+  it in Miami time (2 PM most weeks). Moving it to a Miami time needs a new US-DST library.
+- Game name/ticker still Capitale / $CAPITALE / PALAZZO, pending Juan. The site reads them from
+  `GAME` in `web/lib/config.ts` (one place); the NFT name/symbol are strings in CapitaleNFT.

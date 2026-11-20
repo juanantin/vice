@@ -1,46 +1,63 @@
-// Static facts about Capitale on Elysium: four cities, three reward tokens (VOLTA, SENT, VOID).
+// Static facts about Capitale Miami on Elysium: four districts, three reward tokens (VOLTA, SENT, VOID).
 // $CAPITALE launches on Volta paired with $VOLTA; its creator fee (in VOLTA) is the city tax.
 // Contract addresses are filled in after the testnet deploy.
 
-/** A city on the map. A city sets a building's plot, its team in the weekly street race and
- *  the token it earns (Napoli's is picked by the weekly vote). */
+/** The game's name, ticker and words for a building. Change them here and the whole site follows.
+ *  (Placeholder until Juan picks the Miami game's name; the contracts still say "Capitale" /
+ *  PALAZZO, which are strings in CapitaleNFT.) */
+export const GAME = {
+  name: "Capitale",
+  /** Shown as $TICKER. */
+  ticker: "CAPITALE",
+  tagline: "Miami · on Volta",
+  building: "hideout",
+  buildings: "hideouts",
+  /** Social handle of the in-game news account. */
+  news: "@capitale.news",
+};
+export const TICKER = `$${GAME.ticker}`;
+
+/** A district on the map. A district sets a building's plot, its team in the weekly street race
+ *  and the token it earns (Wynwood's is picked by the weekly vote). */
 export type DistrictId = 0 | 1 | 2 | 3;
 
 export interface District {
   id: DistrictId;
   city: string;
-  place: "milano" | "roma" | "napoli" | "venezia";
+  place: "brickell" | "downtown" | "wynwood" | "miamibeach";
   landmark: string;
   colour: string; // main colour
   light: string;
   dark: string;
   styles: [string, string, string];
-  /** The token this city's buildings earn, or "vote": the token the weekly vote picks. */
+  /** The token this district's buildings earn, or "vote": the token the weekly vote picks. */
   earns: TokenId | "vote";
-  /** Riviera theme: the city's crew and its social handle. */
+  /** The district's crew and its social handle. */
   crew: string;
   handle: string;
 }
 
+// Suggested token per district (one deploy value, `cityTokens`): Downtown VOLTA, Brickell SENT,
+// Miami Beach VOID, Wynwood follows the weekly vote. Index order matches the contracts.
 export const DISTRICTS: District[] = [
-  { id: 0, city: "Milano", crew: "I Sarti", handle: "@sarti.milano", place: "milano", earns: 1, landmark: "Duomo", colour: "#d9b45a", light: "#3d3420", dark: "#a8821a", styles: ["Torre della Borsa", "Atelier", "Bosco Verticale"] },
-  { id: 1, city: "Roma", crew: "I Gladiatori", handle: "@gladiatori.roma", place: "roma", earns: 0, landmark: "Colosseo", colour: "#e0874f", light: "#3d2a1f", dark: "#c2541f", styles: ["Tempietto", "Villa Romana", "Fontana"] },
-  { id: 2, city: "Napoli", crew: "I Lazzari", handle: "@lazzari.napoli", place: "napoli", earns: "vote", landmark: "Vesuvio", colour: "#e0648f", light: "#3b2230", dark: "#c23a6b", styles: ["Pizzeria", "Palazzo dei Quartieri", "Teatro"] },
-  { id: 3, city: "Venezia", crew: "Le Maschere", handle: "@maschere.venezia", place: "venezia", earns: 2, landmark: "Campanile", colour: "#5b8def", light: "#1f2c45", dark: "#2f62c4", styles: ["Palazzo sul Canale", "Fornace di Murano", "Bottega delle Maschere"] },
+  { id: 0, city: "Brickell", crew: "Los Banqueros", handle: "@banqueros.brickell", place: "brickell", earns: 1, landmark: "Glass towers", colour: "#f5c451", light: "#3d3420", dark: "#a87a12", styles: ["Glass Tower", "Bank Tower", "Pool Condo"] },
+  { id: 1, city: "Downtown", crew: "Bayfront Royals", handle: "@royals.downtown", place: "downtown", earns: 0, landmark: "Freedom Tower", colour: "#ff8a4c", light: "#3d2a1f", dark: "#c2541f", styles: ["Skyscraper", "Deco Office", "Bayside Hotel"] },
+  { id: 2, city: "Wynwood", crew: "Los Muralistas", handle: "@muralistas.wynwood", place: "wynwood", earns: "vote", landmark: "Mural walls", colour: "#b8f04a", light: "#2c3a1a", dark: "#5a8a10", styles: ["Loft Tower", "Mural Warehouse", "Gallery"] },
+  { id: 3, city: "Miami Beach", crew: "Los Flamingos", handle: "@flamingos.beach", place: "miamibeach", earns: 2, landmark: "Ocean Drive", colour: "#3fd9f5", light: "#163640", dark: "#0f86a3", styles: ["Oceanfront Condo", "Deco Hotel", "Beach House"] },
 ];
 
 /** Contract value for a city that follows the weekly vote (CapitaleVault.FOLLOWS_VOTE). */
 export const FOLLOWS_VOTE = 254;
 
-/** The token city `d` earns while `current` is the vote's pick. */
+/** The token district `d` earns while `current` is the vote's pick. */
 export function cityToken(d: District, current: TokenId): TokenId {
   return d.earns === "vote" ? current : d.earns;
 }
 
-/** The cities that follow the weekly vote (Napoli). */
+/** The districts that follow the weekly vote (Wynwood). */
 export const VOTE_CITIES = () => DISTRICTS.filter((d) => d.earns === "vote");
 
-/** A reward token. Each city earns one; the weekly vote picks Napoli's. */
+/** A reward token. Each district earns one; the weekly vote picks Wynwood's. */
 export type TokenId = 0 | 1 | 2;
 
 export interface RewardToken {

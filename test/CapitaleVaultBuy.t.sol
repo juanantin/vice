@@ -10,7 +10,7 @@ contract CapitaleVaultBuyTest is BaseTest {
     function setUp() public override {
         super.setUp();
         goPublic();
-        build(alice, MILANO); // #1, earns SENT
+        build(alice, BRICKELL); // #1, earns SENT
     }
 
     function test_taxSplit70_15_15() public {
@@ -68,9 +68,9 @@ contract CapitaleVaultBuyTest is BaseTest {
         assertEq(vault.pending(1, SENT_IDX), fill(SENT_IDX, 0.14 ether));
         assertEq(vault.streetFunds(), 0.03 ether);
         vm.warp(FIRST_DEADLINE);
-        vault.settle(); // Milano won the race: its prize waits to be bought in SENT
+        vault.settle(); // Brickell won the race: its prize waits to be bought in SENT
         assertEq(vault.streetFunds(), 0);
-        assertEq(vault.cityStreetFunds(MILANO), 0.03 ether);
+        assertEq(vault.cityStreetFunds(BRICKELL), 0.03 ether);
         assertFalse(vault.requestBuy()); // 0.03 alone is below the minimum order
         payTax(0.1 ether); // +0.07 residents: 0.1 to buy
         assertTrue(vault.requestBuy());
@@ -80,9 +80,9 @@ contract CapitaleVaultBuyTest is BaseTest {
     }
 
     function test_eachCityEarnsItsOwnToken() public {
-        build(bob, ROMA); // #2 VOLTA
-        build(carol, NAPOLI); // #3 follows the vote: SENT in week 0
-        build(carol, VENEZIA); // #4 VOID
+        build(bob, DOWNTOWN); // #2 VOLTA
+        build(carol, WYNWOOD); // #3 follows the vote: SENT in week 0
+        build(carol, MIAMI_BEACH); // #4 VOID
         payTax(0.2 ether); // 0.14 residents: 0.035 per building
         assertTrue(vault.requestBuy());
         assertEq(vault.pending(1, SENT_IDX), fill(SENT_IDX, 0.035 ether));
@@ -97,20 +97,20 @@ contract CapitaleVaultBuyTest is BaseTest {
         for (uint256 id = 1; id <= 4; ++id) {
             assertEq(vault.pendingUsd(id), 105e18);
         }
-        // Milano and Napoli share one SENT swap: three tokens bought in this order.
+        // Brickell and Wynwood share one SENT swap: three tokens bought in this order.
         assertEq(vault.totalPurchases(), 3);
         uint8[] memory ct = vault.cityTokens();
         assertEq(ct.length, 4);
-        assertEq(ct[MILANO], SENT_IDX);
-        assertEq(ct[ROMA], VOLTA_IDX);
-        assertEq(ct[NAPOLI], SENT_IDX);
-        assertEq(ct[VENEZIA], VOID_IDX);
+        assertEq(ct[BRICKELL], SENT_IDX);
+        assertEq(ct[DOWNTOWN], VOLTA_IDX);
+        assertEq(ct[WYNWOOD], SENT_IDX);
+        assertEq(ct[MIAMI_BEACH], VOID_IDX);
     }
 
     function test_splitByBuildingCount() public {
-        build(alice, MILANO); // Milano 2
-        build(bob, ROMA); // Roma 1
-        payTax(0.3 ether); // 0.21 residents: 0.14 Milano, 0.07 Roma
+        build(alice, BRICKELL); // Brickell 2
+        build(bob, DOWNTOWN); // Downtown 1
+        payTax(0.3 ether); // 0.21 residents: 0.14 Brickell, 0.07 Downtown
         assertTrue(vault.requestBuy());
         assertEq(vault.pending(1, SENT_IDX), fill(SENT_IDX, 0.07 ether));
         assertEq(vault.pending(2, SENT_IDX), fill(SENT_IDX, 0.07 ether));
@@ -119,15 +119,15 @@ contract CapitaleVaultBuyTest is BaseTest {
     }
 
     function test_voteCityFollowsTheVote() public {
-        build(bob, NAPOLI); // #2
-        assertEq(vault.tokenOfCity(NAPOLI), SENT_IDX);
+        build(bob, WYNWOOD); // #2
+        assertEq(vault.tokenOfCity(WYNWOOD), SENT_IDX);
         vm.prank(alice);
-        vault.vote(ids1(1), VOID_IDX); // a Milano building votes too: the vote is city-wide
+        vault.vote(ids1(1), VOID_IDX); // a Brickell building votes too: the vote is city-wide
         vm.warp(FIRST_DEADLINE);
         payTax(0.2 ether);
         assertTrue(vault.requestBuy()); // settles first
-        assertEq(vault.tokenOfCity(NAPOLI), VOID_IDX);
-        assertEq(vault.tokenOfCity(MILANO), SENT_IDX); // fixed cities do not change
+        assertEq(vault.tokenOfCity(WYNWOOD), VOID_IDX);
+        assertEq(vault.tokenOfCity(BRICKELL), SENT_IDX); // fixed cities do not change
         assertGt(vault.pending(2, VOID_IDX), 0);
         assertEq(vault.pending(2, SENT_IDX), 0);
         assertGt(vault.pending(1, SENT_IDX), 0);
@@ -152,11 +152,11 @@ contract CapitaleVaultBuyTest is BaseTest {
     }
 
     function test_oneBadTokenRejectsTheWholeOrder() public {
-        build(bob, ROMA); // VOLTA needs no swap
+        build(bob, DOWNTOWN); // VOLTA needs no swap
         payTax(1 ether);
         adapter.setQuality(9_500); // the SENT swap fails the check
         assertFalse(vault.requestBuy());
-        assertEq(vault.heldRewards(VOLTA_IDX), 0); // Roma's part was not bought either
+        assertEq(vault.heldRewards(VOLTA_IDX), 0); // Downtown's part was not bought either
         assertEq(vault.residentsFunds(), 0.7 ether);
     }
 
@@ -187,7 +187,7 @@ contract CapitaleVaultBuyTest is BaseTest {
     }
 
     function test_decimalsHandled() public {
-        build(carol, VENEZIA); // VOID (test copy) has 6 decimals
+        build(carol, MIAMI_BEACH); // VOID (test copy) has 6 decimals
         payTax(0.2 ether); // 0.07 per building
         assertTrue(vault.requestBuy());
         assertEq(rewards[VOID_IDX].balanceOf(address(vault)), fill(VOID_IDX, 0.07 ether));
@@ -195,13 +195,13 @@ contract CapitaleVaultBuyTest is BaseTest {
     }
 
     function test_doubleVoltaConfig() public {
-        // The alternative setup: Napoli earns VOLTA like Roma instead of following the vote.
+        // The alternative setup: Wynwood earns VOLTA like Downtown instead of following the vote.
         CapitaleVault v2 = deployVaultWith(
             allTokens(), allRoutes(), 4, IFeeEscrow(address(0)), [SENT_IDX, VOLTA_IDX, VOLTA_IDX, VOID_IDX]
         );
         vm.startPrank(address(nft));
-        v2.onMint(1, ROMA, false);
-        v2.onMint(2, NAPOLI, false);
+        v2.onMint(1, DOWNTOWN, false);
+        v2.onMint(2, WYNWOOD, false);
         vm.stopPrank();
         volta.mint(address(v2), 0.2 ether);
         assertTrue(v2.requestBuy());

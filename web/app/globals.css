@@ -1,6 +1,6 @@
-/* Capitale on Volta: Volta's engraved-banknote look. Deep forest greens, mint linework,
-   ivory type, square corners, Cormorant Garamond for display, Geist for text, Geist Mono
-   for small spaced-out labels. */
+/* Capitale Miami. The base rules below come from the older engraved theme (kept on branch
+   theme-volta of the Italy repo); the MIAMI THEME section further down overrides colours,
+   corners and type: Anton (display), Manrope (text), JetBrains Mono (labels). */
 
 :root {
   --void: #041510;
@@ -1440,7 +1440,7 @@ body,
 }
 
 
-/* ─────────── chart labels around Italy ─────────── */
+/* ─────────── water and neighbourhood labels ─────────── */
 
 .sea-label,
 .land-label {
@@ -1592,13 +1592,13 @@ body,
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════════════
-   RIVIERA THEME (branch theme-riviera): modern Italian coast, golden hour by default,
-   neon night as the dark theme. Social-feed city, bold condensed type, rounded "phone"
-   cards. Original look: no third-party game logos, fonts or characters.
+   MIAMI THEME (main): neon Miami night by default (navy bay, hot pink and cyan, palms),
+   golden hour as the light theme. Social-feed city, bold condensed type, rounded "phone"
+   cards. Original look: no third-party game names, logos, fonts or characters.
    ═══════════════════════════════════════════════════════════════════════════════════ */
 :root {
-  --void: #0c0a1f;
-  --plate: #17112f;
+  --void: #0b1634;
+  --plate: #151432;
   --forest: #1d1438;
   --panel: #241a44;
   --emerald: #6b3a7a;
@@ -1649,7 +1649,7 @@ body,
   background: linear-gradient(180deg, #ff8a7a59 0%, #ffb27a33 35%, #ffd59a14 65%, transparent 100%);
 }
 :root:not([data-theme="light"]) .map::after {
-  background: linear-gradient(180deg, #7b2ff74d 0%, #ff4f8b1f 40%, transparent 100%);
+  background: linear-gradient(180deg, #7b2ff74d 0%, #ff4f8b26 32%, #3ff5ff0d 62%, transparent 100%);
 }
 
 /* Rounded phone-app cards instead of Volta's square plates. */
@@ -1674,6 +1674,12 @@ body,
 }
 .sheet {
   border-radius: 22px 22px 0 0;
+}
+:root:not([data-theme="light"]) .sheet {
+  background: linear-gradient(180deg, #171436f7, #0d0f2afa);
+}
+:root[data-theme="light"] .sheet {
+  background: linear-gradient(180deg, #fffaf5f8, #fff1e6fb);
 }
 
 /* Type: bold condensed display, uppercase. */
@@ -2000,4 +2006,21 @@ h3 {
 }
 :root[data-theme="light"] .map {
   background: #27b4c3;
+}
+
+/* Map data credit (OpenStreetMap / Overture, ODbL). */
+.map-credit {
+  position: absolute;
+  right: 10px;
+  bottom: 118px;
+  z-index: 3;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  opacity: 0.7;
+  pointer-events: none;
+}
+@media (max-width: 899px) {
+  .map-credit { bottom: 112px; right: 8px; font-size: 8px; }
 }

@@ -18,7 +18,7 @@ contract CapitaleVaultVoltaTest is BaseTest {
     }
 
     function test_buyingVoltaIsAOneToOneAllocation() public {
-        build(alice, ROMA); // Roma earns VOLTA
+        build(alice, DOWNTOWN); // Downtown earns VOLTA
         adapter.setBroken(true); // no swap route is used for VOLTA
         payTax(1 ether);
         assertTrue(vault.requestBuy());
@@ -30,7 +30,7 @@ contract CapitaleVaultVoltaTest is BaseTest {
     }
 
     function test_heldVoltaIsNeverCountedAsNewTax() public {
-        build(alice, ROMA);
+        build(alice, DOWNTOWN);
         payTax(1 ether);
         vault.requestBuy();
         uint256 tax = vault.totalTax();
@@ -58,7 +58,7 @@ contract CapitaleVaultVoltaTest is BaseTest {
     }
 
     function test_swapAllowanceIsExactAndReset() public {
-        build(alice, MILANO); // SENT is swapped
+        build(alice, BRICKELL); // SENT is swapped
         payTax(1 ether);
         adapter.setTakeMore(true); // tries to pull 1 wei more than approved: the fill fails
         assertFalse(vault.requestBuy());
@@ -119,7 +119,7 @@ contract CapitaleVaultVoltaTest is BaseTest {
         v2.settle();
         assertEq(v2.residentsFunds(), 0.7 ether);
         vm.prank(address(nft));
-        v2.onMint(1, MILANO, false); // a building to receive the SENT bought with native income
+        v2.onMint(1, BRICKELL, false); // a building to receive the SENT bought with native income
         assertTrue(v2.requestBuy());
         assertEq(address(v2).balance, 0.4 ether);
     }

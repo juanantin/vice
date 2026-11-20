@@ -34,8 +34,8 @@ interface IFeeEscrow {
 ///         operations (paid only to the ops multisig).
 ///
 ///         Each city earns one token, fixed at deploy (`cityToken`), or follows the weekly
-///         vote (FOLLOWS_VOTE). Capitale on Volta: Roma VOLTA, Milano SENT, Venezia VOID, and
-///         Napoli earns whichever token the vote picks.
+///         vote (FOLLOWS_VOTE). Capitale Miami: Downtown VOLTA, Brickell SENT, Miami Beach VOID,
+///         and Wynwood earns whichever token the vote picks.
 ///
 ///         Income is one asset fixed at deploy: an ERC-20 (Capitale on Volta: $VOLTA, the
 ///         asset $CAPITALE is paired with) or the chain's native coin (`income == address(0)`).
@@ -96,7 +96,7 @@ contract CapitaleVault is ICapitaleVault, Ownable2Step, ReentrancyGuard {
     /// Index of the income asset among the reward tokens, or NO_TOKEN.
     uint8 public immutable incomeRewardIndex;
     uint8 public constant NO_TOKEN = type(uint8).max;
-    /// Number of districts (cities), fixed at deploy. Capitale: 4 (Milano, Roma, Napoli, Venezia).
+    /// Number of districts (cities), fixed at deploy. Capitale Miami: 4 (Brickell, Downtown, Wynwood, Miami Beach).
     uint8 public immutable districts;
     /// Number of reward tokens, fixed at deploy. Capitale on Volta: 3 (VOLTA, SENT, VOID).
     uint8 public immutable tokenCount;

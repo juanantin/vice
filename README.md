@@ -1,9 +1,10 @@
-# Capitale on Volta (Elysium)
+# Capitale Miami (on Volta / Elysium)
 
-An engraved city of Italy on Elysium: burn $CAPITALE (launched on Volta, paired with
-$VOLTA) to build a palazzo, earn a share of the weekly purchases of VOLTA, SENT and VOID,
-vote for next week's token, grow your building by claiming. The Base/STONKEX version
-lives in juanantin/capitale.
+A neon Miami on Elysium: burn $CAPITALE (launched on Volta, paired with $VOLTA) to open a
+hideout in Brickell, Downtown, Wynwood or Miami Beach, earn a share of the purchases of VOLTA,
+SENT and VOID, vote for next week's token, grow your building by claiming. The map is real
+Miami (OpenStreetMap via Overture Maps). The Italy version lives in juanantin/capitale-volta;
+the Base/STONKEX version in juanantin/capitale. (Game name and ticker are placeholders.)
 Replica of Stockopolis — see `CLAUDE.md` (brief), `docs/stockopolis-reference.md` (spec)
 and `docs/DECISIONS.md` (how ambiguities were resolved).
 
@@ -21,7 +22,9 @@ forge build
 forge test            # unit + fuzz + invariant tests
 ```
 ## Website preview (`web/`)
-Next.js + PixiJS, unplugged (sample data, no wallet yet).
+Next.js + PixiJS, unplugged (sample data; a hidden test lab deploys a test city).
+Map data: `python3 scripts/fetch-miami.py` (refresh the OSM extract, optional) then
+`node scripts/build-miami.mjs` (writes `lib/miami.json`).
 ```sh
 cd web && npm install && npm run dev
 ```

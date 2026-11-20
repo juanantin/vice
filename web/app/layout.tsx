@@ -1,16 +1,17 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { GAME } from "../lib/config";
 
 export const metadata: Metadata = {
-  title: "Capitale",
-  description: "Run a crew on the Italian Riviera. Build a hideout, pull scores, take the turf. A city-building game on Elysium, launched on Volta.",
+  title: GAME.name,
+  description: "Run a crew in Miami: Brickell, Downtown, Wynwood or Miami Beach. Open a hideout, pull scores, take the turf. A city-building game on Elysium, launched on Volta.",
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
-  themeColor: "#0c0a1f",
+  themeColor: "#0b1634",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -78,8 +78,8 @@ export async function deployTestCity(opts: DeployOptions, onStep: (i: number) =>
       ops: me,
       weth: "0x0000000000000000000000000000000000000000",
       districts: DISTRICTS.length,
-      initialToken: 0, // Napoli (the vote city) starts on VOLTA
-      // One token per city (Milano tSENT, Roma tVOLTA, Napoli follows the vote, Venezia tVOID).
+      initialToken: 0, // Wynwood (the vote district) starts on VOLTA
+      // One token per district (Brickell tSENT, Downtown tVOLTA, Wynwood follows the vote, Miami Beach tVOID).
       cityTokens: DISTRICTS.map((d) => (d.earns === "vote" ? FOLLOWS_VOTE : d.earns)).concat([0, 0, 0, 0]).slice(0, 4) as [number, number, number, number],
     },
     rewards,

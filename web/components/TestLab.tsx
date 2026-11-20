@@ -6,7 +6,7 @@ import { useAccount, useChainId, useConnect, useSwitchChain } from "wagmi";
 import { chainError, connectCity, describeError, rememberCity, savedCity, testActions } from "../lib/chain";
 import { DEPLOY_STEPS, deployTestCity } from "../lib/deploy";
 import { CHAIN, EXPLORER } from "../lib/wagmi";
-import { TOKENS } from "../lib/config";
+import { GAME, TOKENS } from "../lib/config";
 import { formatCountdown } from "../lib/romeTime";
 import { setMode, useCity } from "../lib/store";
 import { short } from "./WalletButton";
@@ -88,7 +88,7 @@ export default function TestLab() {
       <h3>2 · Test city</h3>
       {!vault ? (
         <>
-          <p>Deploy your own copy of Capitale with test tokens. Your wallet asks you to confirm {DEPLOY_STEPS.length} times.</p>
+          <p>Deploy your own copy of {GAME.name} with test tokens. Your wallet asks you to confirm {DEPLOY_STEPS.length} times.</p>
           <label className="muted small">Early bird length for this test</label>
           <div className="row">
             {[[600, "10 min"], [3600, "1 hour"], [21600, "6 hours (real)"]].map(([s, l]) => (
@@ -171,7 +171,7 @@ export default function TestLab() {
         </>
       )}
       {msg && <p className={msg.ok ? "ok-box" : "err-box"}>{msg.text}</p>}
-      <p className="preview-note">Testnet: tokens have no value. The weekly vote still closes on the real Sunday 20:00 Rome time.</p>
+      <p className="preview-note">Testnet: tokens have no value. The weekly vote still closes on the real Sunday deadline (20:00 Rome, 2 PM Miami most weeks).</p>
     </div>
   );
 }

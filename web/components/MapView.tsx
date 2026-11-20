@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { CityScene } from "../lib/scene";
-import { DISTRICTS, TOKENS, cityToken, levelForUsd } from "../lib/config";
-import { DISTRICT_PLACES, LAND_LABELS, PLACES, SEA_LABELS } from "../lib/plots";
+import { DISTRICTS, GAME, TOKENS, cityToken, levelForUsd } from "../lib/config";
+import { DISTRICT_PLACES, LAND_LABELS, MAP_ATTRIBUTION, PLACES, SEA_LABELS } from "../lib/plots";
 import { getCity, onCityEvent, useCity } from "../lib/store";
 import { applyArtTheme } from "../lib/art";
 import { ink, useTheme } from "../lib/theme";
@@ -33,13 +33,13 @@ export default function MapView() {
       if (!el) return;
       const [x, y] = sc.worldToScreen(PLACES[k]);
       // just above each landmark
-      const lift = k === "napoli" ? 250 : k === "venezia" ? 330 : k === "mayor" ? 210 : k === "roma" ? 130 : 200;
-      const s = Math.max(0.55, Math.min(1.15, sc.scale * 2.4));
-      // Napoli sits right under Roma's banner: shift it east so the token rows don't overlap.
-      const dx = k === "napoli" ? 110 : 0;
+      const lift = { brickell: 150, downtown: 310, wynwood: 200, miamibeach: 230, mayor: 240 }[k];
+      const s = Math.max(0.55, Math.min(1.15, sc.scale * 2.2));
+      // Brickell sits right under Downtown: its banner goes to the west, beside the towers.
+      const dx = k === "brickell" ? -260 : k === "mayor" ? 70 : 0;
       el.style.transform = `translate(${x + dx * sc.scale}px, ${y - lift * sc.scale}px) translate(-50%, -100%) scale(${s})`;
     });
-    // Sea and country names, engraved-chart style.
+    // Water and neighbourhood names.
     [...SEA_LABELS, ...LAND_LABELS].forEach(([, p], i) => {
       const el = labels.current[i];
       if (!el) return;
@@ -124,8 +124,8 @@ export default function MapView() {
             {leader === D.id && <span className="this-week">TURF LEADER</span>}
             <span className="banner-token">{D.city.toUpperCase()}</span>
             <span className="banner-crew">{D.crew}</span>
-            <span className="banner-city">{city.districtCount[D.id]?.toLocaleString() ?? 0} palazzi</span>
-            {/* The token this city earns; Napoli's is picked by the weekly vote. */}
+            <span className="banner-city">{city.districtCount[D.id]?.toLocaleString() ?? 0} {GAME.buildings}</span>
+            {/* The token this district earns; Wynwood's is picked by the weekly vote. */}
             <span className="banner-tokens" aria-label={`Earns ${TOKENS[cityToken(D, city.currentToken)].token}`}>
               {D.earns === "vote" && <em>vote</em>}
               <i className="on" style={{ ["--t" as string]: ink(TOKENS[cityToken(D, city.currentToken)]) }}>
@@ -135,11 +135,12 @@ export default function MapView() {
           </div>
         ))}
         <div ref={(el) => { banners.current[DISTRICTS.length] = el; }} className="banner mayor-banner">
-          <span className="banner-token">IL SINDACO</span>
+          <span className="banner-token">THE MAYOR</span>
           <span className="banner-city">#0</span>
         </div>
       </div>
-      {!ready && <div className="map-loading">Building the city…</div>}
+      {!ready && <div className="map-loading">Lighting up Miami…</div>}
+      <div className="map-credit">{MAP_ATTRIBUTION}</div>
       {toast && (
         <div key={toast.key} className="buy-toast" style={{ ["--c" as string]: ink(TOKENS[toast.token]) }} onAnimationEnd={() => setToast(null)}>
           <span className="kicker">The score</span>

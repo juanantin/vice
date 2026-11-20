@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useAccount, useConnect, useDisconnect } from "wagmi";
 import { useCity } from "../lib/store";
+import { GAME, TICKER } from "../lib/config";
 
 export const short = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;
 
@@ -50,11 +51,11 @@ export default function WalletButton() {
             </div>
             <div className="sheet-body">
               <p>
-                Capitale has not launched yet. You are looking at a <b>preview</b>: the palazzi, the purchases and
+                {GAME.name} has not launched yet. You are looking at a <b>preview</b>: the hideouts, the purchases and
                 the rewards on the map are sample data.
               </p>
               <p>
-                Building, voting and claiming open when <b>$CAPITALE</b> launches on <b>Volta</b>, on the Elysium
+                Building, voting and claiming open when <b>{TICKER}</b> launches on <b>Volta</b>, on the Elysium
                 chain. Until then there is nothing to connect a wallet to.
               </p>
               <button className="btn primary wide" onClick={() => setNotice(false)}>Explore the preview</button>
