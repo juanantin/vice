@@ -3,17 +3,17 @@ pragma solidity ^0.8.24;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
-import {ICapitaleOracle} from "./interfaces/ICapitaleOracle.sol";
-import {ICapitalePricing} from "./interfaces/ICapitalePricing.sol";
+import {IViceOracle} from "./interfaces/IViceOracle.sol";
+import {IVicePricing} from "./interfaces/IVicePricing.sol";
 
-/// @title CapitalePricing
-/// @notice Price of a new building, set in USD and paid by burning $CAPITALE.
+/// @title VicePricing
+/// @notice Price of a new building, set in USD and paid by burning $VICE.
 ///
 ///         Early bird: the first 300 buildings cost $40 during the 6 hours after `startTime`.
 ///         If they sell out sooner, building pauses until the 6 hours are over.
 ///         Then tiers by building number: #<=800 $52, #<=1500 $68, #<=2300 $88, #<=3000 $120.
 ///
-///         Tokens to burn = USD target / $CAPITALE price.
+///         Tokens to burn = USD target / $VICE price.
 ///         - Early bird: a reference price that follows drops immediately and follows rises
 ///           only after the higher price has held for 60 seconds.
 ///         - Afterwards: the LOWER of spot and the 30-60 min TWAP (so a pump never makes
@@ -21,7 +21,7 @@ import {ICapitalePricing} from "./interfaces/ICapitalePricing.sol";
 ///
 /// @dev    The owner is meant to be a 48h TimelockController: oracle and USD target changes
 ///         are therefore publicly announced 48h ahead.
-contract CapitalePricing is ICapitalePricing, Ownable2Step {
+contract VicePricing is IVicePricing, Ownable2Step {
     uint256 public constant EARLY_BIRD_DURATION = 6 hours;
     uint256 public constant RISE_HOLD = 60 seconds;
     uint256 public constant MAX_BUILDINGS = 3000;
@@ -30,7 +30,7 @@ contract CapitalePricing is ICapitalePricing, Ownable2Step {
     uint256 public immutable earlyBirdUnits;
 
     address public nft;
-    ICapitaleOracle public oracle;
+    IViceOracle public oracle;
 
     /// USD targets, 1e18 = $1.
     uint256 public earlyBirdUsd;
@@ -58,7 +58,7 @@ contract CapitalePricing is ICapitalePricing, Ownable2Step {
 
     constructor(
         address owner_,
-        ICapitaleOracle oracle_,
+        IViceOracle oracle_,
         uint256 startTime_,
         uint256 earlyBirdUnits_,
         uint256 earlyBirdUsd_,
@@ -103,13 +103,13 @@ contract CapitalePricing is ICapitalePricing, Ownable2Step {
         revert CityLocked();
     }
 
-    /// @notice $CAPITALE price used for building right now (USD per token, 1e18).
+    /// @notice $VICE price used for building right now (USD per token, 1e18).
     function buildPrice() public view returns (uint256 price) {
         if (isEarlyBird()) {
-            (price,,) = _nextRef(oracle.capitaleUsdSpot());
+            (price,,) = _nextRef(oracle.viceUsdSpot());
         } else {
-            uint256 spot = oracle.capitaleUsdSpot();
-            uint256 twap = oracle.capitaleUsdTwap();
+            uint256 spot = oracle.viceUsdSpot();
+            uint256 twap = oracle.viceUsdTwap();
             price = spot < twap ? spot : twap;
         }
         if (price == 0) revert BadPrice();
@@ -144,7 +144,7 @@ contract CapitalePricing is ICapitalePricing, Ownable2Step {
 
     // ─────────────────────────── Admin (timelocked) ───────────────────────────
 
-    function setOracle(ICapitaleOracle oracle_) external onlyOwner {
+    function setOracle(IViceOracle oracle_) external onlyOwner {
         if (address(oracle_) == address(0)) revert BadConfig();
         oracle = oracle_;
         emit OracleSet(address(oracle_));
@@ -172,7 +172,7 @@ contract CapitalePricing is ICapitalePricing, Ownable2Step {
     }
 
     function _pokeRef() internal returns (uint256 ref) {
-        (ref, riseCandidate, riseSince) = _nextRef(oracle.capitaleUsdSpot());
+        (ref, riseCandidate, riseSince) = _nextRef(oracle.viceUsdSpot());
         if (ref != refPrice) {
             refPrice = ref;
             emit ReferenceUpdated(ref);
@@ -187,7 +187,7 @@ contract CapitalePricing is ICapitalePricing, Ownable2Step {
         since = riseSince;
         if (ref == 0) {
             // First reading: never start above the average, so a pre-launch pump cannot seed it.
-            uint256 twap = oracle.capitaleUsdTwap();
+            uint256 twap = oracle.viceUsdTwap();
             return (spot < twap ? spot : twap, 0, 0);
         }
         if (spot <= ref) {

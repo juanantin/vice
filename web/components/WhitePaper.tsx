@@ -21,7 +21,7 @@ export default function WhitePaper() {
       <h3>2. {TICKER} and the city tax</h3>
       <ul>
         <li>{TICKER} launches on Volta, the Uniswap launchpad on Elysium, paired with $VOLTA. Every trade pays the pool&apos;s swap fee in $VOLTA.</li>
-        <li>Of that fee, Volta&apos;s rules send 70% to the launch&apos;s chosen split and 30% to the Volta protocol. {GAME.name} sends its whole share to the creator, and the creator NFT is held by the CapitaleVault, so the creator share is the city tax. Nobody can take that NFT out of the vault.</li>
+        <li>Of that fee, Volta&apos;s rules send 70% to the launch&apos;s chosen split and 30% to the Volta protocol. {GAME.name} sends its whole share to the creator, and the creator NFT is held by the ViceVault, so the creator share is the city tax. Nobody can take that NFT out of the vault.</li>
         <li>Anyone can call collectCreatorFees() to move the tax from Volta&apos;s fee escrow into the vault; the keeper does it every hour.</li>
         <li>70% of the tax buys each district&apos;s token for its residents, 15% goes to the weekly turf race, and 15% stays in $VOLTA for operations (paid to a 2-of-3 multisig).</li>
       </ul>

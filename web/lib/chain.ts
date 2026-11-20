@@ -15,7 +15,7 @@ export interface CityAddresses {
   vault: Address;
   nft: Address;
   pricing: Address;
-  capitale: Address;
+  vice: Address;
   oracle: Address;
   adapter: Address;
   tokens: Address[];
@@ -26,7 +26,7 @@ export interface CityAddresses {
 
 // ─────────── where the test city lives ───────────
 
-const KEY = "capitale.testCity";
+const KEY = "vice.testCity";
 
 export function savedCity(): Address | null {
   try {
@@ -69,15 +69,15 @@ export async function resolveAddresses(vault: Address): Promise<CityAddresses> {
     ...Array.from({ length: n0 }, (_, i) => publicClient.readContract({ ...v, functionName: "tokens", args: [BigInt(i)] })),
   ]);
   const n = { address: nft as Address, abi: nftAbi } as const;
-  const [pricing, capitale] = await Promise.all([
+  const [pricing, vice] = await Promise.all([
     publicClient.readContract({ ...n, functionName: "pricing" }),
-    publicClient.readContract({ ...n, functionName: "capitale" }),
+    publicClient.readContract({ ...n, functionName: "vice" }),
   ]);
   return {
     vault,
     nft: nft as Address,
     pricing: pricing as Address,
-    capitale: capitale as Address,
+    vice: vice as Address,
     oracle: oracle as Address,
     adapter: adapter as Address,
     tokens: tokens as Address[],
@@ -96,7 +96,7 @@ async function readCity(a: CityAddresses, me: Address | null) {
   const n = { address: a.nft, abi: nftAbi } as const;
   const p = { address: a.pricing, abi: pricingAbi } as const;
   const o = { address: a.oracle, abi: testOracleAbi } as const;
-  const c = { address: a.capitale, abi: testTokenAbi } as const;
+  const c = { address: a.vice, abi: testTokenAbi } as const;
   const rv = <T>(fn: string, args: unknown[] = []) =>
     publicClient.readContract({ ...v, functionName: fn as never, args: args as never }) as Promise<T>;
 
@@ -128,7 +128,7 @@ async function readCity(a: CityAddresses, me: Address | null) {
     rv<readonly bigint[]>("votesOf", [week]),
     rv<readonly bigint[]>("newBuildsOf", [week]),
     publicClient.readContract({ ...o, functionName: "incomeUsd" }),
-    publicClient.readContract({ ...o, functionName: "capitaleUsdSpot" }),
+    publicClient.readContract({ ...o, functionName: "viceUsdSpot" }),
     publicClient.readContract({ ...p, functionName: "isEarlyBird" }),
     publicClient.readContract({ ...o, functionName: "owner" }),
     publicClient.readContract({ address: a.adapter, abi: testAdapterAbi, functionName: "qualityBps" }).catch(() => 10_000n),
@@ -220,7 +220,7 @@ async function readCity(a: CityAddresses, me: Address | null) {
     gasBalance: num(gasBalance),
     vaultIncome: num(vaultIncome),
     allowance,
-    capitaleWei: capWei,
+    viceWei: capWei,
     quote,
     quoteError,
     isEarlyBird: isEB as boolean,
@@ -257,10 +257,10 @@ async function readCity(a: CityAddresses, me: Address | null) {
     opsPaid: 0,
     holdings: holdings.map((h) => num(h)),
     incomeUsd: num(incomeUsd as bigint),
-    capitaleUsd: num(capUsd as bigint),
+    viceUsd: num(capUsd as bigint),
     tokenUsd: tokenUsd.map((t) => num(t)),
     approved: quote ? allowance >= maxBurn && allowance > 0n : allowance > 0n,
-    capitaleBalance: num(capWei),
+    viceBalance: num(capWei),
     live: false,
   };
 }
@@ -294,7 +294,7 @@ export async function refresh() {
     }
   } catch (e) {
     lastError = (e as Error).message?.split("\n")[0] ?? String(e);
-    console.warn("Capitale: could not read the city", e);
+    console.warn("VICE: could not read the city", e);
   }
 }
 
@@ -346,8 +346,8 @@ function need(): CityAddresses {
 }
 
 export const testActions = {
-  faucet: () => send({ address: need().capitale, abi: testTokenAbi, functionName: "faucet" } as never),
-  /** Stand-in for $CAPITALE trading on Volta: credits creator fees (test VOLTA) to the vault in the test escrow. */
+  faucet: () => send({ address: need().vice, abi: testTokenAbi, functionName: "faucet" } as never),
+  /** Stand-in for $VICE trading on Volta: credits creator fees (test VOLTA) to the vault in the test escrow. */
   simulateTrading: (fees: bigint) =>
     send({ address: need().feeEscrow, abi: testFeeEscrowAbi, functionName: "simulateTrading", args: [need().vault, fees] } as never),
   /** Pulls the creator fees from the escrow into the vault (anyone can; the keeper does it hourly). */
@@ -363,16 +363,16 @@ export const testActions = {
   },
   settle: () => send({ address: need().vault, abi: vaultAbi, functionName: "settle" } as never),
   payOps: () => send({ address: need().vault, abi: vaultAbi, functionName: "payOps" } as never),
-  setCapitalePrice: (usd: number) => {
+  setVicePrice: (usd: number) => {
     const v = BigInt(Math.round(usd * 1e12)) * 10n ** 6n;
-    return send({ address: need().oracle, abi: testOracleAbi, functionName: "setCapitale", args: [v, v] } as never);
+    return send({ address: need().oracle, abi: testOracleAbi, functionName: "setVice", args: [v, v] } as never);
   },
   setQuality: (bps: number) => send({ address: need().adapter, abi: testAdapterAbi, functionName: "setQuality", args: [BigInt(bps)] } as never),
 };
 
 registerChain({
   approve: async () => {
-    await send({ address: need().capitale, abi: testTokenAbi, functionName: "approve", args: [need().nft, MAX] } as never);
+    await send({ address: need().vice, abi: testTokenAbi, functionName: "approve", args: [need().nft, MAX] } as never);
   },
   build: async (district, style, inviter, maxTokensWei) => {
     const r = await send({ address: need().nft, abi: nftAbi, functionName: "mint", args: [district, style, BigInt(inviter), maxTokensWei] } as never);

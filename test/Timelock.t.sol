@@ -3,7 +3,7 @@ pragma solidity ^0.8.24;
 
 import {BaseTest} from "./Base.t.sol";
 import {TimelockController} from "@openzeppelin/contracts/governance/TimelockController.sol";
-import {CapitaleVault} from "../src/CapitaleVault.sol";
+import {ViceVault} from "../src/ViceVault.sol";
 
 /// Pricing / protection changes go through a 48h public timelock.
 contract TimelockTest is BaseTest {
@@ -31,7 +31,7 @@ contract TimelockTest is BaseTest {
 
     function test_changeNeeds48h() public {
         assertEq(vault.owner(), address(tl));
-        CapitaleVault.BuyParams memory p = defaultParams();
+        ViceVault.BuyParams memory p = defaultParams();
         p.minOrder = 0.2 ether;
         bytes memory call = abi.encodeCall(vault.setBuyParams, (p));
         vm.startPrank(safe);

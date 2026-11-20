@@ -7,12 +7,12 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import {ICapitaleOracle} from "./interfaces/ICapitaleOracle.sol";
+import {IViceOracle} from "./interfaces/IViceOracle.sol";
 import {ISwapAdapter} from "./interfaces/ISwapAdapter.sol";
-import {ICapitaleVault} from "./interfaces/ICapitaleVault.sol";
+import {IViceVault} from "./interfaces/IViceVault.sol";
 import {RomeTime} from "./libraries/RomeTime.sol";
 
-interface ICapitaleNFTView {
+interface IViceNFTView {
     function ownerOf(uint256 id) external view returns (address);
     function balanceOf(address owner) external view returns (uint256);
     function tokenOfOwnerByIndex(address owner, uint256 index) external view returns (uint256);
@@ -28,18 +28,18 @@ interface IFeeEscrow {
     function balances(address recipient, address token) external view returns (uint256);
 }
 
-/// @title CapitaleVault
-/// @notice Receives all of $CAPITALE's creator-fee income and turns it into rewards:
+/// @title ViceVault
+/// @notice Receives all of $VICE's creator-fee income and turns it into rewards:
 ///         70% for residents, 15% for the weekly street pool, 15% stays as income for
 ///         operations (paid only to the ops multisig).
 ///
 ///         Each city earns one token, fixed at deploy (`cityToken`), or follows the weekly
-///         vote (FOLLOWS_VOTE). Capitale Miami: Downtown VOLTA, Brickell SENT, Miami Beach VOID,
+///         vote (FOLLOWS_VOTE). VICE: Downtown VOLTA, Brickell SENT, Miami Beach VOID,
 ///         and Wynwood earns whichever token the vote picks.
 ///
-///         Income is one asset fixed at deploy: an ERC-20 (Capitale on Volta: $VOLTA, the
-///         asset $CAPITALE is paired with) or the chain's native coin (`income == address(0)`).
-///         On Volta the vault holds $CAPITALE's creator NFT, so the creator share of every
+///         Income is one asset fixed at deploy: an ERC-20 (VICE on Volta: $VOLTA, the
+///         asset $VICE is paired with) or the chain's native coin (`income == address(0)`).
+///         On Volta the vault holds $VICE's creator NFT, so the creator share of every
 ///         trading fee is credited to it in Volta's FeeEscrow; anyone can call
 ///         collectCreatorFees() to pull it in.
 ///
@@ -71,7 +71,7 @@ interface IFeeEscrow {
 ///         reward tokens or ETH anywhere except claims (to building owners), the ops share
 ///         (to the ops address) and swaps (through whitelisted adapters, checked against the
 ///         oracle).
-contract CapitaleVault is ICapitaleVault, Ownable2Step, ReentrancyGuard {
+contract ViceVault is IViceVault, Ownable2Step, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     uint256 internal constant ACC = 1e18;
@@ -85,7 +85,7 @@ contract CapitaleVault is ICapitaleVault, Ownable2Step, ReentrancyGuard {
     uint8 public constant MAX_DISTRICTS = 4;
     uint8 public constant MAX_TOKENS = 4;
 
-    ICapitaleNFTView public immutable nft;
+    IViceNFTView public immutable nft;
     uint256 public immutable earlyBirdEnd;
     IWETH public immutable weth;
     /// Income asset: an ERC-20, or address(0) for the native coin.
@@ -96,9 +96,9 @@ contract CapitaleVault is ICapitaleVault, Ownable2Step, ReentrancyGuard {
     /// Index of the income asset among the reward tokens, or NO_TOKEN.
     uint8 public immutable incomeRewardIndex;
     uint8 public constant NO_TOKEN = type(uint8).max;
-    /// Number of districts (cities), fixed at deploy. Capitale Miami: 4 (Brickell, Downtown, Wynwood, Miami Beach).
+    /// Number of districts (cities), fixed at deploy. VICE: 4 (Brickell, Downtown, Wynwood, Miami Beach).
     uint8 public immutable districts;
-    /// Number of reward tokens, fixed at deploy. Capitale on Volta: 3 (VOLTA, SENT, VOID).
+    /// Number of reward tokens, fixed at deploy. VICE on Volta: 3 (VOLTA, SENT, VOID).
     uint8 public immutable tokenCount;
     /// cityToken value for a city whose token is picked by the weekly vote.
     uint8 public constant FOLLOWS_VOTE = 254;
@@ -107,7 +107,7 @@ contract CapitaleVault is ICapitaleVault, Ownable2Step, ReentrancyGuard {
     IERC20[4] public tokens;
     uint8[4] public tokenDecimals;
 
-    ICapitaleOracle public oracle;
+    IViceOracle public oracle;
     ISwapAdapter[4] public adapters;
     address public ops;
 
@@ -218,11 +218,11 @@ contract CapitaleVault is ICapitaleVault, Ownable2Step, ReentrancyGuard {
     /// Deploy-time settings (grouped to keep the constructor readable).
     struct Setup {
         address owner;
-        ICapitaleNFTView nft;
+        IViceNFTView nft;
         uint256 earlyBirdEnd;
         IERC20 income;
         IFeeEscrow feeEscrow;
-        ICapitaleOracle oracle;
+        IViceOracle oracle;
         address ops;
         IWETH weth;
         uint8 districts;
@@ -273,7 +273,7 @@ contract CapitaleVault is ICapitaleVault, Ownable2Step, ReentrancyGuard {
 
     receive() external payable {}
 
-    /// @notice Lets the vault hold Volta's creator NFT for $CAPITALE (its fee share then flows
+    /// @notice Lets the vault hold Volta's creator NFT for $VICE (its fee share then flows
     ///         here). Nothing can move it out again: the fee stream is locked to the city.
     function onERC721Received(address, address, uint256, bytes calldata) external pure returns (bytes4) {
         return this.onERC721Received.selector;
@@ -828,7 +828,7 @@ contract CapitaleVault is ICapitaleVault, Ownable2Step, ReentrancyGuard {
 
     // ─────────────────────────── Admin (48h timelock) ───────────────────────────
 
-    function setOracle(ICapitaleOracle oracle_) external onlyOwner {
+    function setOracle(IViceOracle oracle_) external onlyOwner {
         if (address(oracle_) == address(0)) revert BadConfig();
         oracle = oracle_;
         emit OracleSet(address(oracle_));

@@ -1,19 +1,18 @@
-// Static facts about Capitale Miami on Elysium: four districts, three reward tokens (VOLTA, SENT, VOID).
-// $CAPITALE launches on Volta paired with $VOLTA; its creator fee (in VOLTA) is the city tax.
+// Static facts about VICE on Elysium: four districts, three reward tokens (VOLTA, SENT, VOID).
+// $VICE launches on Volta paired with $VOLTA; its creator fee (in VOLTA) is the city tax.
 // Contract addresses are filled in after the testnet deploy.
 
 /** The game's name, ticker and words for a building. Change them here and the whole site follows.
- *  (Placeholder until Juan picks the Miami game's name; the contracts still say "Capitale" /
- *  PALAZZO, which are strings in CapitaleNFT.) */
+ *  (The NFT's name "VICE" and symbol HIDEOUT are strings in src/ViceNFT.sol.) */
 export const GAME = {
-  name: "Capitale",
+  name: "VICE",
   /** Shown as $TICKER. */
-  ticker: "CAPITALE",
+  ticker: "VICE",
   tagline: "Miami · on Volta",
   building: "hideout",
   buildings: "hideouts",
   /** Social handle of the in-game news account. */
-  news: "@capitale.news",
+  news: "@vice.news",
 };
 export const TICKER = `$${GAME.ticker}`;
 
@@ -46,7 +45,7 @@ export const DISTRICTS: District[] = [
   { id: 3, city: "Miami Beach", crew: "Los Flamingos", handle: "@flamingos.beach", place: "miamibeach", earns: 2, landmark: "Ocean Drive", colour: "#3fd9f5", light: "#163640", dark: "#0f86a3", styles: ["Oceanfront Condo", "Deco Hotel", "Beach House"] },
 ];
 
-/** Contract value for a city that follows the weekly vote (CapitaleVault.FOLLOWS_VOTE). */
+/** Contract value for a city that follows the weekly vote (ViceVault.FOLLOWS_VOTE). */
 export const FOLLOWS_VOTE = 254;
 
 /** The token district `d` earns while `current` is the vote's pick. */
@@ -86,8 +85,8 @@ export const TIERS = [
   { upTo: 3000, usd: 120 },
 ];
 
-export const CAPITALE_ADDRESS: string | null = null; // set at launch
-/** The city tax is paid in the asset $CAPITALE is paired with on Volta. */
+export const VICE_ADDRESS: string | null = null; // set at launch
+/** The city tax is paid in the asset $VICE is paired with on Volta. */
 export const INCOME = { symbol: "VOLTA", tokenAddress: "0x0f79931689Af199e7CF868ed1107bBA2C83c68f7" as `0x${string}` };
 export const GAS_SYMBOL = "HYPE";
 export const VOLTA_URL = "https://volta.family";

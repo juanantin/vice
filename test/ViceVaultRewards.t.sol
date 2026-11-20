@@ -2,10 +2,10 @@
 pragma solidity ^0.8.24;
 
 import {BaseTest} from "./Base.t.sol";
-import {CapitaleVault} from "../src/CapitaleVault.sol";
+import {ViceVault} from "../src/ViceVault.sol";
 
 /// Dividends, early-bird pool, claims (incl. a failing token), height levels.
-contract CapitaleVaultRewardsTest is BaseTest {
+contract ViceVaultRewardsTest is BaseTest {
     function _buy(uint256 eth) internal {
         payTax(eth);
         vm.warp(block.timestamp + 10 minutes);
@@ -68,7 +68,7 @@ contract CapitaleVaultRewardsTest is BaseTest {
         _buy(0.2 ether);
         assertEq(vault.pending(0, 0), 0);
         vm.prank(mayor);
-        vm.expectRevert(CapitaleVault.MayorExcluded.selector);
+        vm.expectRevert(ViceVault.MayorExcluded.selector);
         vault.claim(0);
     }
 
@@ -166,7 +166,7 @@ contract CapitaleVaultRewardsTest is BaseTest {
         vault.claimMany(ids2(1, 2));
         assertEq(rewards[0].balanceOf(alice), 2 * each);
         vm.prank(alice);
-        vm.expectRevert(abi.encodeWithSelector(CapitaleVault.NotBuildingOwner.selector, 3));
+        vm.expectRevert(abi.encodeWithSelector(ViceVault.NotBuildingOwner.selector, 3));
         vault.claim(3);
     }
 
@@ -178,7 +178,7 @@ contract CapitaleVaultRewardsTest is BaseTest {
         vm.prank(alice);
         nft.transferFrom(alice, bob, 1);
         vm.prank(alice);
-        vm.expectRevert(abi.encodeWithSelector(CapitaleVault.NotBuildingOwner.selector, 1));
+        vm.expectRevert(abi.encodeWithSelector(ViceVault.NotBuildingOwner.selector, 1));
         vault.claim(1);
         vm.prank(bob);
         vault.claim(1);

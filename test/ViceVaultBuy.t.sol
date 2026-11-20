@@ -2,11 +2,11 @@
 pragma solidity ^0.8.24;
 
 import {BaseTest} from "./Base.t.sol";
-import {CapitaleVault, IFeeEscrow} from "../src/CapitaleVault.sol";
+import {ViceVault, IFeeEscrow} from "../src/ViceVault.sol";
 import {ISwapAdapter} from "../src/interfaces/ISwapAdapter.sol";
 
 /// Tax split, buy rules, rejection and pauses, ops payout, one token per city.
-contract CapitaleVaultBuyTest is BaseTest {
+contract ViceVaultBuyTest is BaseTest {
     function setUp() public override {
         super.setUp();
         goPublic();
@@ -34,7 +34,7 @@ contract CapitaleVaultBuyTest is BaseTest {
         vault.payOps();
         assertEq(volta.balanceOf(opsSafe), 0.15 ether);
         assertEq(vault.opsFunds(), 0);
-        vm.expectRevert(CapitaleVault.NothingToPay.selector);
+        vm.expectRevert(ViceVault.NothingToPay.selector);
         vault.payOps();
     }
 
@@ -138,7 +138,7 @@ contract CapitaleVaultBuyTest is BaseTest {
         payTax(1 ether);
         adapter.setQuality(9_500); // 5% worse than reference > 4% allowed
         vm.expectEmit(false, false, false, false, address(vault));
-        emit CapitaleVault.BuyRejected(0, 0, 0, 0, "");
+        emit ViceVault.BuyRejected(0, 0, 0, 0, "");
         assertFalse(vault.requestBuy());
         assertEq(vault.residentsFunds() + vault.streetFunds(), 0.85 ether);
         assertEq(vaultIncome(), 1 ether);
@@ -196,7 +196,7 @@ contract CapitaleVaultBuyTest is BaseTest {
 
     function test_doubleVoltaConfig() public {
         // The alternative setup: Wynwood earns VOLTA like Downtown instead of following the vote.
-        CapitaleVault v2 = deployVaultWith(
+        ViceVault v2 = deployVaultWith(
             allTokens(), allRoutes(), 4, IFeeEscrow(address(0)), [SENT_IDX, VOLTA_IDX, VOLTA_IDX, VOID_IDX]
         );
         vm.startPrank(address(nft));
@@ -212,14 +212,14 @@ contract CapitaleVaultBuyTest is BaseTest {
 
     function test_badCityTokenRejected() public {
         IFeeEscrow noEscrow = IFeeEscrow(address(0));
-        vm.expectRevert(CapitaleVault.BadToken.selector);
+        vm.expectRevert(ViceVault.BadToken.selector);
         deployVaultWith(allTokens(), allRoutes(), 4, noEscrow, [SENT_IDX, VOLTA_IDX, 3, VOID_IDX]);
         // Cities beyond the deploy count are ignored.
         deployVaultWith(allTokens(), allRoutes(), 2, noEscrow, [SENT_IDX, VOLTA_IDX, 9, 9]);
     }
 
     function test_noBuildingsResidentsFundsWait() public {
-        CapitaleVault v2 = deployVault(allTokens(), allRoutes(), 4, IFeeEscrow(address(0)));
+        ViceVault v2 = deployVault(allTokens(), allRoutes(), 4, IFeeEscrow(address(0)));
         volta.mint(address(v2), 1 ether);
         assertFalse(v2.requestBuy()); // nobody to receive them yet
         assertEq(v2.residentsFunds(), 0.7 ether);
@@ -235,7 +235,7 @@ contract CapitaleVaultBuyTest is BaseTest {
     }
 
     function test_executeBuyOnlySelf() public {
-        vm.expectRevert(CapitaleVault.NotSelf.selector);
+        vm.expectRevert(ViceVault.NotSelf.selector);
         vault.executeBuy(1, 1, 1, 0);
     }
 

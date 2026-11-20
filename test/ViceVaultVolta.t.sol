@@ -3,15 +3,15 @@ pragma solidity ^0.8.24;
 
 import {BaseTest} from "./Base.t.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {CapitaleVault, ICapitaleNFTView, IFeeEscrow, IWETH} from "../src/CapitaleVault.sol";
-import {ICapitaleOracle} from "../src/interfaces/ICapitaleOracle.sol";
+import {ViceVault, IViceNFTView, IFeeEscrow, IWETH} from "../src/ViceVault.sol";
+import {IViceOracle} from "../src/interfaces/IViceOracle.sol";
 import {ISwapAdapter} from "../src/interfaces/ISwapAdapter.sol";
 import {MockFeeEscrow} from "./mocks/MockFeeEscrow.sol";
 import {MockCreatorNFT} from "./mocks/MockCreatorNFT.sol";
 
 /// Volta-specific behaviour: income in $VOLTA (also a reward token), creator fees from the
 /// FeeEscrow, the creator NFT held by the vault, and the ERC-20 swap path.
-contract CapitaleVaultVoltaTest is BaseTest {
+contract ViceVaultVoltaTest is BaseTest {
     function setUp() public override {
         super.setUp();
         goPublic();
@@ -72,7 +72,7 @@ contract CapitaleVaultVoltaTest is BaseTest {
 
     function test_collectCreatorFeesFromEscrow() public {
         MockFeeEscrow escrow = new MockFeeEscrow();
-        CapitaleVault v2 = deployVault(allTokens(), allRoutes(), 4, IFeeEscrow(address(escrow)));
+        ViceVault v2 = deployVault(allTokens(), allRoutes(), 4, IFeeEscrow(address(escrow)));
         escrow.credit(volta, address(v2), 50e18);
         vm.prank(carol); // anyone can trigger it
         assertEq(v2.collectCreatorFees(), 50e18);
@@ -82,7 +82,7 @@ contract CapitaleVaultVoltaTest is BaseTest {
     }
 
     function test_collectWithoutEscrowReverts() public {
-        vm.expectRevert(CapitaleVault.BadConfig.selector);
+        vm.expectRevert(ViceVault.BadConfig.selector);
         vault.collectCreatorFees();
     }
 
@@ -94,14 +94,14 @@ contract CapitaleVaultVoltaTest is BaseTest {
     }
 
     function test_nativeIncomeStillWorks() public {
-        CapitaleVault v2 = new CapitaleVault(
-            CapitaleVault.Setup({
+        ViceVault v2 = new ViceVault(
+            ViceVault.Setup({
                 owner: admin,
-                nft: ICapitaleNFTView(address(nft)),
+                nft: IViceNFTView(address(nft)),
                 earlyBirdEnd: START + 6 hours,
                 income: IERC20(address(0)),
                 feeEscrow: IFeeEscrow(address(0)),
-                oracle: ICapitaleOracle(address(oracle)),
+                oracle: IViceOracle(address(oracle)),
                 ops: opsSafe,
                 weth: IWETH(address(0)),
                 districts: 4,

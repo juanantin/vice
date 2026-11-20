@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-/// @notice Price source for Capitale. All prices are USD per ONE WHOLE token, scaled to 1e18
+/// @notice Price source for VICE. All prices are USD per ONE WHOLE token, scaled to 1e18
 ///         (e.g. a token worth $0.002 returns 2e15). Implementations must revert rather than
 ///         return a stale or zero price.
-interface ICapitaleOracle {
-    /// @notice Current (spot) USD price of $CAPITALE.
-    function capitaleUsdSpot() external view returns (uint256);
+interface IViceOracle {
+    /// @notice Current (spot) USD price of $VICE.
+    function viceUsdSpot() external view returns (uint256);
 
-    /// @notice Time-weighted average USD price of $CAPITALE (30-60 min window).
-    function capitaleUsdTwap() external view returns (uint256);
+    /// @notice Time-weighted average USD price of $VICE (30-60 min window).
+    function viceUsdTwap() external view returns (uint256);
 
     /// @notice USD price of one whole unit of the vault's income asset (e.g. $VOLTA, or the
     ///         native coin when income is native).

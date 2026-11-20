@@ -4,7 +4,7 @@ import { useSyncExternalStore } from "react";
 
 export type Theme = "dark" | "light";
 
-const KEY = "capitale.theme";
+const KEY = "vice.theme";
 const listeners = new Set<() => void>();
 
 function read(): Theme {

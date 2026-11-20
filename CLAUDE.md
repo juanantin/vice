@@ -1,11 +1,11 @@
-# CAPITALE MIAMI on VOLTA (Elysium) — project brief for Claude Code
+# VICE MIAMI on VOLTA (Elysium) — project brief for Claude Code
 
-This repo (`juanantin/vice`) is the **Miami** instance of Capitale on Volta / Elysium. It
+This repo (`juanantin/vice`) is the **Miami** instance of VICE on Volta / Elysium. It
 started as a copy of `juanantin/capitale-volta` (the **Italy** version: Milano, Roma, Napoli,
 Venezia), which is separate and must stay untouched: never push there. The Base / STONKEX
 version lives in `juanantin/capitale`. Do not merge them.
 
-Capitale is a replica of **Stockopolis ("Stock City")**. Here the map is **Miami** and the four
+VICE is a replica of **Stockopolis ("Stock City")**. Here the map is **Miami** and the four
 districts are **Brickell, Downtown, Wynwood and Miami Beach**. It runs on **Elysium** (chain id
 99901, gas in HYPE) and launches on **Volta** (volta.family), a Uniswap v4 launchpad. The
 owner, Juan, is an animation director with little Solidity experience: work autonomously,
@@ -15,18 +15,17 @@ explain decisions in plain language, and ask only when a decision is genuinely h
 only lists what changes. When in doubt, do what Stockopolis does. `docs/DECISIONS.md` logs how
 ambiguities were resolved (latest entry: Miami).
 
-## Name (pending Juan)
-The game is still called Capitale / $CAPITALE / NFT symbol PALAZZO. Juan will pick the Miami
-name and ticker (the repo is "vice", but never use "Vice City" or anything from Rockstar's
-games). On the site the name lives in one place: `GAME` in `web/lib/config.ts` (name, ticker,
-tagline, the word for a building, news handle). The NFT's name/symbol and "Capitale #" are
-strings in `src/CapitaleNFT.sol` (change them before deploy, then re-export the bytecode).
+## Name (decided by Juan, Nov 2026)
+The game is **VICE**, token **$VICE**, NFT name "VICE", symbol HIDEOUT. Never extend it to
+"Vice City" or anything else from Rockstar's games (names, logos, fonts, characters). On the site the name lives in one place: `GAME` in `web/lib/config.ts` (name, ticker,
+tagline, the word for a building, news handle). The NFT's name/symbol and "VICE #" are
+strings in `src/ViceNFT.sol` (change them before deploy, then re-export the bytecode).
 
 ## What changes vs Stockopolis
-| Stockopolis (BNB Chain) | Capitale Miami on Volta (Elysium) |
+| Stockopolis (BNB Chain) | VICE on Volta (Elysium) |
 |---|---|
 | BNB | $VOLTA is the city's income asset; gas is HYPE |
-| Flap tax token, 1% buy + 1% sell | $CAPITALE launched on Volta paired with $VOLTA. Volta: swap fee 1–5% (chosen at launch), 70% to the launch's split, 30% to Volta. Capitale sends 100% of its split to the creator; the vault holds the creator NFT, so the creator share (in VOLTA) is the city tax |
+| Flap tax token, 1% buy + 1% sell | $VICE launched on Volta paired with $VOLTA. Volta: swap fee 1–5% (chosen at launch), 70% to the launch's split, 30% to Volta. VICE sends 100% of its split to the creator; the vault holds the creator NFT, so the creator share (in VOLTA) is the city tax |
 | Flap VaultEx + Flap scheduled service | Vault pulls fees from Volta's FeeEscrow (`collectCreatorFees`, anyone) + whitelisted swap adapters + keeper bot with the same rules |
 | 4 stock tokens | 3 reward tokens: VOLTA, SENT, VOID. Buying VOLTA = keep it 1:1, no swap |
 | 4 Chinese-named streets, one stock each | 4 Miami districts (table below), one token each; Wynwood's is the weekly vote's pick |
@@ -83,7 +82,7 @@ at deploy (max 4 each).
 - Never trace, copy or imitate a video game's map, map art, logos, fonts, characters, names
   (no "Vice City", no "Leonida") or catchphrases. Real Miami place names are fine.
 
-## Mechanics to implement (from the reference, with Capitale values)
+## Mechanics to implement (from the reference, with VICE values)
 - **Tax:** 100% of the vault's fee income: 70% buys each district's token for its residents,
   15% for the weekly street pool (bought in the winner's token after the deadline), 15%
   stays in VOLTA for operations (2-of-3 multisig).
@@ -91,17 +90,17 @@ at deploy (max 4 each).
   minimum interval, price check against the reference with a max deviation (Stockopolis:
   0.5 BNB / 3 BNB / 10 min / 4% / 6h pause / 24h idle pause). Scale the ETH thresholds to
   similar USD values (in VOLTA, sized to each pool's liquidity) and keep them as parameters. Anyone can call requestBuy().
-- **Buildings (CapitaleNFT):** 3,000 + Mayor #0 at deploy; mint(district, style,
+- **Buildings (ViceNFT):** 3,000 + Mayor #0 at deploy; mint(district, style,
   inviter, maxPrice); 4 districts × 3 styles, permanent; burn to dead address; sequential
   numbers; plots per district nearest-to-farthest from the landmark; freely transferable;
   rewards and height follow the NFT; vote lock after transfer within the week; invite
-  decorations only. Non-upgradeable. Name "Capitale", symbol "PALAZZO" (pending rename), no royalties.
+  decorations only. Non-upgradeable. Name "VICE", symbol "HIDEOUT", no royalties.
   tokenURI returns name, image and attributes (District, Style, Level, Invites, Plot, Early bird).
-- **Pricing (CapitalePricing):** early bird 300 units at 40 USD for 6h,
+- **Pricing (VicePricing):** early bird 300 units at 40 USD for 6h,
   then tiers 52 / 68 / 88 / 120 USD at #800 / #1500 / #2300 / #3000; tokens to burn =
   USD target / price; early-bird reference price (drops follow instantly, rises after 60s);
   afterwards the lower of spot and a 30-60 min TWAP; revert above the builder's max.
-- **Dividends (CapitaleVault):** residents' share split equally across
+- **Dividends (ViceVault):** residents' share split equally across
   buildings existing at purchase time; early-bird pool shared among early-bird buildings
   when that period ends; claim / claimMany pay all tokens at once, skipping any that
   fail to transfer; pendingUsd(id).
@@ -149,7 +148,7 @@ PixiJS 8 + d3-geo. Must run smoothly on phones. Deployed on Vercel from `main` (
 1. Contracts + tests — done (112 tests incl. invariants; ERC-20 income, FeeEscrow collection,
    one token per district). Miami names in comments, tests and tokenURI.
 2. Price reading on Elysium: oracle from Volta's pool TWAPs (`Oracle.twapTick`) and price
-   calculators for VOLTA/SENT/VOID; $CAPITALE spot/TWAP from its Volta pool. TODO.
+   calculators for VOLTA/SENT/VOID; $VICE spot/TWAP from its Volta pool. TODO.
 3. Swap adapters through Uniswap's UniversalRouter (VOLTA→SENT on the VOLTA/SENT pool;
    VOLTA→HYPE→VOID). TODO.
 4. Keeper bot (hourly: collectCreatorFees, requestBuy, settle). TODO.
@@ -168,10 +167,9 @@ PixiJS 8 + d3-geo. Must run smoothly on phones. Deployed on Vercel from `main` (
   `--use-angle=swiftshader --enable-unsafe-swiftshader --ignore-gpu-blocklist`.
 
 ## Open questions
-- Game name and ticker for the Miami version (and NFT name/symbol).
 - Token per district: suggested Downtown VOLTA, Brickell SENT, Miami Beach VOID, Wynwood vote.
 - Weekly deadline: keep Sunday 20:00 Rome, or move to a Miami time (contract change).
-- Swap fee for $CAPITALE on Volta (1–5%) and anti-snipe settings: Juan's call at launch.
+- Swap fee for $VICE on Volta (1–5%) and anti-snipe settings: Juan's call at launch.
 - Buy sizes per token vs pool liquidity (SENT pool is thin).
 - Hosting: import `juanantin/vice` as a new Vercel project; domain TBD.
 

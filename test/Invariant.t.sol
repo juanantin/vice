@@ -3,30 +3,30 @@ pragma solidity ^0.8.24;
 
 import {BaseTest} from "./Base.t.sol";
 import {Test} from "forge-std/Test.sol";
-import {CapitaleNFT} from "../src/CapitaleNFT.sol";
-import {CapitaleVault} from "../src/CapitaleVault.sol";
+import {ViceNFT} from "../src/ViceNFT.sol";
+import {ViceVault} from "../src/ViceVault.sol";
 import {MockERC20} from "./mocks/MockERC20.sol";
 import {MockSwapAdapter} from "./mocks/MockSwapAdapter.sol";
 
 contract Handler is Test {
-    CapitaleNFT internal nft;
-    CapitaleVault internal vault;
-    MockERC20 internal capitale;
+    ViceNFT internal nft;
+    ViceVault internal vault;
+    MockERC20 internal vice;
     MockSwapAdapter internal adapter;
     address[3] internal users = [address(0xA11CE), address(0xB0B), address(0xCA401)];
     uint256[3] public claimed;
     MockERC20 internal volta;
 
-    constructor(CapitaleNFT nft_, CapitaleVault vault_, MockERC20 capitale_, MockSwapAdapter adapter_, MockERC20 volta_) {
+    constructor(ViceNFT nft_, ViceVault vault_, MockERC20 vice_, MockSwapAdapter adapter_, MockERC20 volta_) {
         volta = volta_;
         nft = nft_;
         vault = vault_;
-        capitale = capitale_;
+        vice = vice_;
         adapter = adapter_;
         for (uint256 i; i < 3; ++i) {
-            capitale.mint(users[i], 1e30);
+            vice.mint(users[i], 1e30);
             vm.prank(users[i]);
-            capitale.approve(address(nft), type(uint256).max);
+            vice.approve(address(nft), type(uint256).max);
         }
     }
 
@@ -100,7 +100,7 @@ contract InvariantTest is BaseTest {
     function setUp() public override {
         super.setUp();
         vm.warp(START);
-        handler = new Handler(nft, vault, capitale, adapter, volta);
+        handler = new Handler(nft, vault, vice, adapter, volta);
         targetContract(address(handler));
     }
 

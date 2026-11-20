@@ -43,14 +43,14 @@ export interface ChainInfo {
   vault: `0x${string}`;
   nft: `0x${string}`;
   pricing: `0x${string}`;
-  capitale: `0x${string}`;
+  vice: `0x${string}`;
   oracle: `0x${string}`;
   adapter: `0x${string}`;
   tokens: `0x${string}`[];
   gasBalance: number;
   vaultIncome: number;
   allowance: bigint;
-  capitaleWei: bigint;
+  viceWei: bigint;
   quote: { id: number; usd: number; tokens: number; tokensWei: bigint } | null;
   quoteError: string | null;
   isEarlyBird: boolean;
@@ -96,10 +96,10 @@ export interface CityState {
   opsPaid: number;
   holdings: number[];
   incomeUsd: number;
-  capitaleUsd: number;
+  viceUsd: number;
   tokenUsd: number[];
   approved: boolean;
-  capitaleBalance: number;
+  viceBalance: number;
   live: boolean;
 }
 
@@ -207,10 +207,10 @@ function makeInitial(): CityState {
     opsPaid: 2_700_000,
     holdings: [9_120_000, 61_400_000, 18_900_000],
     incomeUsd: 0.00059,
-    capitaleUsd: 0.0000412,
+    viceUsd: 0.0000412,
     tokenUsd: [0.00059, 0.00005, 0.000135],
     approved: false,
-    capitaleBalance: 9_000_000,
+    viceBalance: 9_000_000,
     live: true,
   };
 }
@@ -296,7 +296,7 @@ export function quoteBuild(): { id: number; usd: number; tokens: number } {
   }
   const id = s.buildings.length + 1;
   const usd = usdForBuilding(id, false);
-  return { id, usd, tokens: Math.ceil(usd / s.capitaleUsd) };
+  return { id, usd, tokens: Math.ceil(usd / s.viceUsd) };
 }
 
 export async function approve() {
@@ -348,7 +348,7 @@ export function build(owner: string, district: DistrictId, style: 0 | 1 | 2, inv
     buildings,
     districtCount,
     newBuilds,
-    capitaleBalance: owner === YOU ? s.capitaleBalance - q.tokens : s.capitaleBalance,
+    viceBalance: owner === YOU ? s.viceBalance - q.tokens : s.viceBalance,
   });
   emit({ type: "built", building: b });
   if (inviterB) emit({ type: "invited", building: inviterB });

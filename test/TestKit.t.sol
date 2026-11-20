@@ -4,16 +4,16 @@ pragma solidity ^0.8.24;
 import {Test} from "forge-std/Test.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {TestKit, TestToken, TestSwapAdapter} from "../src/testnet/TestKit.sol";
-import {CapitaleNFT} from "../src/CapitaleNFT.sol";
-import {CapitalePricing} from "../src/CapitalePricing.sol";
-import {CapitaleVault, ICapitaleNFTView, IFeeEscrow, IWETH} from "../src/CapitaleVault.sol";
-import {ICapitaleOracle} from "../src/interfaces/ICapitaleOracle.sol";
-import {ICapitalePricing} from "../src/interfaces/ICapitalePricing.sol";
-import {ICapitaleVault} from "../src/interfaces/ICapitaleVault.sol";
+import {ViceNFT} from "../src/ViceNFT.sol";
+import {VicePricing} from "../src/VicePricing.sol";
+import {ViceVault, IViceNFTView, IFeeEscrow, IWETH} from "../src/ViceVault.sol";
+import {IViceOracle} from "../src/interfaces/IViceOracle.sol";
+import {IVicePricing} from "../src/interfaces/IVicePricing.sol";
+import {IViceVault} from "../src/interfaces/IViceVault.sol";
 import {ISwapAdapter} from "../src/interfaces/ISwapAdapter.sol";
 
 /// The exact deploy sequence the website's "Deploy test city" button runs, end to end:
-/// $CAPITALE trading credits creator fees (in VOLTA) to the escrow, the vault collects them,
+/// $VICE trading credits creator fees (in VOLTA) to the escrow, the vault collects them,
 /// buys VOLTA / SENT / VOID and buildings claim them.
 contract TestKitTest is Test {
     address juan = makeAddr("juan");
@@ -22,10 +22,10 @@ contract TestKitTest is Test {
         vm.warp(1_793_613_600);
         vm.startPrank(juan);
         TestKit kit = new TestKit();
-        CapitalePricing pricing = new CapitalePricing(
-            juan, ICapitaleOracle(address(kit.oracle())), block.timestamp, 300, 40e18, [uint256(52e18), 68e18, 88e18, 120e18]
+        VicePricing pricing = new VicePricing(
+            juan, IViceOracle(address(kit.oracle())), block.timestamp, 300, 40e18, [uint256(52e18), 68e18, 88e18, 120e18]
         );
-        CapitaleNFT nft = new CapitaleNFT(IERC20(address(kit.capitale())), ICapitalePricing(address(pricing)), juan, 4);
+        ViceNFT nft = new ViceNFT(IERC20(address(kit.vice())), IVicePricing(address(pricing)), juan, 4);
         TestToken[3] memory r = kit.rewardTokens();
         IERC20[] memory toks = new IERC20[](3);
         ISwapAdapter[] memory routes = new ISwapAdapter[](3);
@@ -33,14 +33,14 @@ contract TestKitTest is Test {
             toks[i] = IERC20(address(r[i]));
             routes[i] = ISwapAdapter(address(kit.adapter()));
         }
-        CapitaleVault vault = new CapitaleVault(
-            CapitaleVault.Setup({
+        ViceVault vault = new ViceVault(
+            ViceVault.Setup({
                 owner: juan,
-                nft: ICapitaleNFTView(address(nft)),
+                nft: IViceNFTView(address(nft)),
                 earlyBirdEnd: pricing.earlyBirdEnd(),
                 income: IERC20(address(kit.volta())),
                 feeEscrow: IFeeEscrow(address(kit.feeEscrow())),
-                oracle: ICapitaleOracle(address(kit.oracle())),
+                oracle: IViceOracle(address(kit.oracle())),
                 ops: juan,
                 weth: IWETH(address(0)),
                 districts: 4,
@@ -50,17 +50,17 @@ contract TestKitTest is Test {
             }),
             toks,
             routes,
-            CapitaleVault.BuyParams({minOrder: 10e18, maxOrder: 1_000e18, minInterval: 10 minutes, rejectPause: 6 hours, maxDeviationBps: 400})
+            ViceVault.BuyParams({minOrder: 10e18, maxOrder: 1_000e18, minInterval: 10 minutes, rejectPause: 6 hours, maxDeviationBps: 400})
         );
         pricing.setNft(address(nft));
-        nft.setVault(ICapitaleVault(address(vault)));
+        nft.setVault(IViceVault(address(vault)));
 
-        kit.capitale().faucet();
-        kit.capitale().approve(address(nft), type(uint256).max);
+        kit.vice().faucet();
+        kit.vice().approve(address(nft), type(uint256).max);
         assertEq(nft.mint(2, 1, 0, type(uint256).max), 1); // a Wynwood building
         vm.stopPrank();
 
-        // $CAPITALE trades; Volta credits the creator share to the vault; anyone collects it.
+        // $VICE trades; Volta credits the creator share to the vault; anyone collects it.
         kit.feeEscrow().simulateTrading(address(vault), 100e18);
         assertEq(vault.collectCreatorFees(), 100e18);
         assertEq(vault.totalTax(), 100e18);

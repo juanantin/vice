@@ -1,19 +1,19 @@
-# Capitale Miami (on Volta / Elysium)
+# VICE (on Volta / Elysium)
 
-A neon Miami on Elysium: burn $CAPITALE (launched on Volta, paired with $VOLTA) to open a
+A neon Miami on Elysium: burn $VICE (launched on Volta, paired with $VOLTA) to open a
 hideout in Brickell, Downtown, Wynwood or Miami Beach, earn a share of the purchases of VOLTA,
 SENT and VOID, vote for next week's token, grow your building by claiming. The map is real
 Miami (OpenStreetMap via Overture Maps). The Italy version lives in juanantin/capitale-volta;
-the Base/STONKEX version in juanantin/capitale. (Game name and ticker are placeholders.)
+the Base/STONKEX version in juanantin/capitale.
 Replica of Stockopolis — see `CLAUDE.md` (brief), `docs/stockopolis-reference.md` (spec)
 and `docs/DECISIONS.md` (how ambiguities were resolved).
 
 ## Contracts (`src/`)
 | Contract | What it does |
 |---|---|
-| `CapitaleNFT` | Buildings (ERC-721 "PALAZZO"), 3,000 + Mayor #0, burn-to-build |
-| `CapitalePricing` | Early bird / tier USD prices, $CAPITALE price rules |
-| `CapitaleVault` | Tax split, buys, dividends, height, weekly vote, street race |
+| `ViceNFT` | Buildings (ERC-721 "HIDEOUT"), 3,000 + Mayor #0, burn-to-build |
+| `VicePricing` | Early bird / tier USD prices, $VICE price rules |
+| `ViceVault` | Tax split, buys, dividends, height, weekly vote, street race |
 | `libraries/RomeTime` | Sunday 20:00 Rome deadline with daylight saving |
 
 ## Develop

@@ -3,12 +3,12 @@ pragma solidity ^0.8.24;
 
 import {Test} from "forge-std/Test.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {CapitaleNFT} from "../src/CapitaleNFT.sol";
-import {CapitalePricing} from "../src/CapitalePricing.sol";
-import {CapitaleVault, ICapitaleNFTView, IFeeEscrow, IWETH} from "../src/CapitaleVault.sol";
-import {ICapitaleOracle} from "../src/interfaces/ICapitaleOracle.sol";
-import {ICapitalePricing} from "../src/interfaces/ICapitalePricing.sol";
-import {ICapitaleVault} from "../src/interfaces/ICapitaleVault.sol";
+import {ViceNFT} from "../src/ViceNFT.sol";
+import {VicePricing} from "../src/VicePricing.sol";
+import {ViceVault, IViceNFTView, IFeeEscrow, IWETH} from "../src/ViceVault.sol";
+import {IViceOracle} from "../src/interfaces/IViceOracle.sol";
+import {IVicePricing} from "../src/interfaces/IVicePricing.sol";
+import {IViceVault} from "../src/interfaces/IViceVault.sol";
 import {ISwapAdapter} from "../src/interfaces/ISwapAdapter.sol";
 import {MockERC20} from "./mocks/MockERC20.sol";
 import {MockOracle} from "./mocks/MockOracle.sol";
@@ -40,27 +40,27 @@ abstract contract BaseTest is Test {
     address internal bob = makeAddr("bob");
     address internal carol = makeAddr("carol");
 
-    MockERC20 internal capitale;
+    MockERC20 internal vice;
     MockERC20[3] internal rewards; // SENT, VOID, VOLTA (the income token)
     MockERC20 internal volta;
     MockOracle internal oracle;
     MockSwapAdapter internal adapter;
-    CapitalePricing internal pricing;
-    CapitaleNFT internal nft;
-    CapitaleVault internal vault;
+    VicePricing internal pricing;
+    ViceNFT internal nft;
+    ViceVault internal vault;
 
     uint256[3] internal tokenUsd = [uint256(0.5e18), 2e18, INCOME_USD];
 
     function setUp() public virtual {
         vm.warp(T0);
-        capitale = new MockERC20("Capitale", "CAPITALE", 18);
+        vice = new MockERC20("VICE", "VICE", 18);
         rewards[0] = new MockERC20("Sent.family", "SENT", 18);
         rewards[1] = new MockERC20("voidcash", "VOID", 6); // different decimals on purpose
         volta = new MockERC20("Volta", "VOLTA", 18);
         rewards[2] = volta;
 
         oracle = new MockOracle();
-        oracle.setCapitale(CAP_PRICE, CAP_PRICE);
+        oracle.setVice(CAP_PRICE, CAP_PRICE);
         oracle.setIncomeUsd(INCOME_USD);
         adapter = new MockSwapAdapter();
         for (uint256 i; i < 3; ++i) {
@@ -68,12 +68,12 @@ abstract contract BaseTest is Test {
             adapter.setPrices(INCOME_USD, address(rewards[i]), tokenUsd[i]);
         }
 
-        pricing = new CapitalePricing(
-            admin, ICapitaleOracle(address(oracle)), START, 300, 40e18, [uint256(52e18), 68e18, 88e18, 120e18]
+        pricing = new VicePricing(
+            admin, IViceOracle(address(oracle)), START, 300, 40e18, [uint256(52e18), 68e18, 88e18, 120e18]
         );
-        nft = new CapitaleNFT(IERC20(address(capitale)), ICapitalePricing(address(pricing)), mayor, 4);
+        nft = new ViceNFT(IERC20(address(vice)), IVicePricing(address(pricing)), mayor, 4);
         vault = deployVault(allTokens(), allRoutes(), 4, IFeeEscrow(address(0)));
-        nft.setVault(ICapitaleVault(address(vault)));
+        nft.setVault(IViceVault(address(vault)));
         vm.startPrank(admin);
         pricing.setNft(address(nft));
         vm.stopPrank();
@@ -95,7 +95,7 @@ abstract contract BaseTest is Test {
 
     function deployVault(IERC20[] memory toks, ISwapAdapter[] memory routes, uint8 cities, IFeeEscrow escrow)
         internal
-        returns (CapitaleVault)
+        returns (ViceVault)
     {
         return deployVaultWith(toks, routes, cities, escrow, [SENT_IDX, VOLTA_IDX, 254, VOID_IDX]);
     }
@@ -106,15 +106,15 @@ abstract contract BaseTest is Test {
         uint8 cities,
         IFeeEscrow escrow,
         uint8[4] memory cityTokens
-    ) internal returns (CapitaleVault) {
-        return new CapitaleVault(
-            CapitaleVault.Setup({
+    ) internal returns (ViceVault) {
+        return new ViceVault(
+            ViceVault.Setup({
                 owner: admin,
-                nft: ICapitaleNFTView(address(nft)),
+                nft: IViceNFTView(address(nft)),
                 earlyBirdEnd: START + 6 hours,
                 income: IERC20(address(volta)),
                 feeEscrow: escrow,
-                oracle: ICapitaleOracle(address(oracle)),
+                oracle: IViceOracle(address(oracle)),
                 ops: opsSafe,
                 weth: IWETH(address(0)),
                 districts: cities,
@@ -132,8 +132,8 @@ abstract contract BaseTest is Test {
         return volta.balanceOf(address(vault)) - vault.heldRewards(VOLTA_IDX);
     }
 
-    function defaultParams() internal pure returns (CapitaleVault.BuyParams memory) {
-        return CapitaleVault.BuyParams({
+    function defaultParams() internal pure returns (ViceVault.BuyParams memory) {
+        return ViceVault.BuyParams({
             minOrder: 0.1 ether,
             maxOrder: 0.6 ether,
             minInterval: 10 minutes,
@@ -149,17 +149,17 @@ abstract contract BaseTest is Test {
     }
 
     function build(address who, uint8 district, uint8 style, uint256 inviter) internal returns (uint256 id) {
-        capitale.mint(who, 1_000_000e18);
+        vice.mint(who, 1_000_000e18);
         vm.startPrank(who);
-        capitale.approve(address(nft), type(uint256).max);
+        vice.approve(address(nft), type(uint256).max);
         id = nft.mint(district, style, inviter, type(uint256).max);
         vm.stopPrank();
     }
 
     function buildMany(address who, uint8 district, uint256 n) internal {
-        capitale.mint(who, n * 1_000_000e18);
+        vice.mint(who, n * 1_000_000e18);
         vm.startPrank(who);
-        capitale.approve(address(nft), type(uint256).max);
+        vice.approve(address(nft), type(uint256).max);
         for (uint256 i; i < n; ++i) {
             nft.mint(district, 0, 0, type(uint256).max);
         }

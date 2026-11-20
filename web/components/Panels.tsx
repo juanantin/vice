@@ -70,7 +70,7 @@ export function BuildTab() {
   const testnet = city.mode === "testnet";
   const maxBurnWei = testnet && city.chain?.quote ? (city.chain.quote.tokensWei * 102n) / 100n : BigInt(maxBurn) * 10n ** 18n;
   const unavailable = testnet ? (!city.chain ? "Load a test city in the Test lab first." : city.chain.quoteError) : null;
-  const short = testnet && !!city.chain?.quote && city.chain.capitaleWei < city.chain.quote.tokensWei;
+  const short = testnet && !!city.chain?.quote && city.chain.viceWei < city.chain.quote.tokensWei;
   const full = city.buildings.length >= MAX_BUILDINGS;
   const invNum = parseInt(inviter, 10);
   const invOk = !inviter || (invNum > 0 && invNum < q.id);
@@ -450,7 +450,7 @@ export function TreasuryTab() {
       </table>
       <h3>Contracts</h3>
       <ul className="rules">
-        <li>CapitaleVault, CapitaleNFT, CapitalePricing: addresses after deploy.</li>
+        <li>ViceVault, ViceNFT, VicePricing: addresses after deploy.</li>
         <li>No withdrawal function. Settings change only through a public <b>48-hour</b> timelock.</li>
       </ul>
     </div>

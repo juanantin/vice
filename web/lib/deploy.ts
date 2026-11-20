@@ -1,5 +1,5 @@
-// "Deploy test city": puts a complete Capitale on Elysium from the connected wallet, wired to
-// test tokens (tVOLTA, tSENT, tVOID, tCAPITALE) and a test fee escrow.
+// "Deploy test city": puts a complete VICE on Elysium from the connected wallet, wired to
+// test tokens (tVOLTA, tSENT, tVOID, tVICE) and a test fee escrow.
 // Six wallet confirmations. Testnet only: it uses the test stand-ins from TestKit.
 
 import { parseEther, type Address } from "viem";
@@ -48,8 +48,8 @@ export async function deployTestCity(opts: DeployOptions, onStep: (i: number) =>
 
   onStep(0);
   const kit = await deploy(testKitAbi, testKitBytecode, []);
-  const [capitale, volta, feeEscrow, oracle, adapter, rewards] = await Promise.all([
-    read<Address>(kit, testKitAbi, "capitale"),
+  const [vice, volta, feeEscrow, oracle, adapter, rewards] = await Promise.all([
+    read<Address>(kit, testKitAbi, "vice"),
     read<Address>(kit, testKitAbi, "volta"),
     read<Address>(kit, testKitAbi, "feeEscrow"),
     read<Address>(kit, testKitAbi, "oracle"),
@@ -64,7 +64,7 @@ export async function deployTestCity(opts: DeployOptions, onStep: (i: number) =>
   const pricing = await deploy(pricingAbi, pricingBytecode, [me, oracle, BigInt(start), 300n, parseEther("40"), [parseEther("52"), parseEther("68"), parseEther("88"), parseEther("120")]]);
 
   onStep(2);
-  const nft = await deploy(nftAbi, nftBytecode, [capitale, pricing, me, DISTRICTS.length]);
+  const nft = await deploy(nftAbi, nftBytecode, [vice, pricing, me, DISTRICTS.length]);
 
   onStep(3);
   const vault = await deploy(vaultAbi, vaultBytecode, [

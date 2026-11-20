@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-interface ICapitalePricing {
+interface IVicePricing {
     function startTime() external view returns (uint256);
     function earlyBirdEnd() external view returns (uint256);
     function isEarlyBird() external view returns (bool);

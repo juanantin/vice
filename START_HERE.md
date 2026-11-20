@@ -1,7 +1,7 @@
 # Start here (for Juan)
 
-1. Unzip this folder somewhere on your computer (e.g. Documents/capitale).
-2. Open Claude Desktop → Code tab → open the `capitale` folder.
+1. Unzip this folder somewhere on your computer (e.g. Documents/vice).
+2. Open Claude Desktop → Code tab → open the `vice` folder.
 3. Paste this as your first message:
 
    Read CLAUDE.md and assets/manifest.json. Work through the build order step by step,

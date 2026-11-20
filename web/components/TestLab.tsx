@@ -43,7 +43,7 @@ export default function TestLab() {
   if (city.mode !== "testnet") {
     return (
       <div className="tab">
-        <p>You&apos;re looking at <b>sample data</b>. The test lab runs the real contracts on <b>Elysium</b> with test tokens (tCAPITALE, tVOLTA, tSENT, tVOID) that have no value. Elysium has no public test network, so deploying costs a little real HYPE for gas.</p>
+        <p>You&apos;re looking at <b>sample data</b>. The test lab runs the real contracts on <b>Elysium</b> with test tokens (tVICE, tVOLTA, tSENT, tVOID) that have no value. Elysium has no public test network, so deploying costs a little real HYPE for gas.</p>
         <button className="btn primary wide" onClick={() => setMode("testnet")}>Switch to test mode</button>
       </div>
     );
@@ -55,7 +55,7 @@ export default function TestLab() {
       const v = await deployTestCity({ earlyBird: eb }, setStep);
       rememberCity(v);
       await connectCity(v, address ?? null);
-      return "Your test city is live! Grab test $CAPITALE below and build.";
+      return "Your test city is live! Grab test $VICE below and build.";
     });
 
   const pendingFunds = city.residentsFunds + city.streetFunds;
@@ -129,16 +129,16 @@ export default function TestLab() {
         <>
           <h3>3 · Try everything</h3>
           <div className="stat-grid">
-            <div><span className="muted">Your test $CAPITALE</span><b>{Math.floor(city.capitaleBalance).toLocaleString()}</b></div>
+            <div><span className="muted">Your test $VICE</span><b>{Math.floor(city.viceBalance).toLocaleString()}</b></div>
             <div><span className="muted">Early bird</span><b>{c.isEarlyBird ? `ends in ${formatCountdown(ebLeft)}` : c.earlyBirdFinalized ? "over, paid out" : "over"}</b></div>
             <div><span className="muted">VOLTA waiting to buy</span><b>{Math.floor(pendingFunds).toLocaleString()}</b></div>
             <div><span className="muted">This week buys</span><b>{TOKENS[city.currentToken].token}</b></div>
           </div>
           <div className="lab-actions">
-            <button className="btn" disabled={!!busy} onClick={() => act("faucet", testActions.faucet)}>{busy === "faucet" ? "…" : "Get 1,000,000 test $CAPITALE"}</button>
+            <button className="btn" disabled={!!busy} onClick={() => act("faucet", testActions.faucet)}>{busy === "faucet" ? "…" : "Get 1,000,000 test $VICE"}</button>
             <div className="row">
               <input className="input narrow" value={tax} onChange={(e) => setTax(e.target.value)} inputMode="decimal" />
-              <button className="btn" disabled={!!busy} onClick={() => act("trade", () => testActions.simulateTrading(parseEther(tax || "0")))}>{busy === "trade" ? "…" : "Simulate $CAPITALE trading"}</button>
+              <button className="btn" disabled={!!busy} onClick={() => act("trade", () => testActions.simulateTrading(parseEther(tax || "0")))}>{busy === "trade" ? "…" : "Simulate $VICE trading"}</button>
             </div>
             <p className="muted small">Stands in for real trading on Volta: credits that many tVOLTA of creator fees to the vault in the fee escrow (min {c.minOrder.toLocaleString()} tVOLTA per buy).</p>
             <button className="btn" disabled={!!busy} onClick={() => act("collect", testActions.collectFees)}>{busy === "collect" ? "…" : "Collect creator fees"}</button>
@@ -156,10 +156,10 @@ export default function TestLab() {
           {address && c.oracleOwner === address.toLowerCase() && (
             <>
               <h3>4 · Test controls (only you)</h3>
-              <p className="muted small">Move the test prices to check the rules. Current $CAPITALE price: ${city.capitaleUsd}</p>
+              <p className="muted small">Move the test prices to check the rules. Current $VICE price: ${city.viceUsd}</p>
               <div className="row">
                 <input className="input narrow" placeholder="0.002" value={price} onChange={(e) => setPrice(e.target.value)} inputMode="decimal" />
-                <button className="btn small" disabled={!!busy || !Number(price)} onClick={() => act("price", () => testActions.setCapitalePrice(Number(price)))}>Set $CAPITALE price</button>
+                <button className="btn small" disabled={!!busy || !Number(price)} onClick={() => act("price", () => testActions.setVicePrice(Number(price)))}>Set $VICE price</button>
               </div>
               <div className="row">
                 <button className={`btn small ${c.adapterQuality === 10_000 ? "primary" : ""}`} disabled={!!busy} onClick={() => act("q", () => testActions.setQuality(10_000))}>Normal fills</button>

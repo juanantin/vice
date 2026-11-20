@@ -3,20 +3,20 @@ pragma solidity ^0.8.24;
 
 import {BaseTest} from "./Base.t.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {CapitaleNFT} from "../src/CapitaleNFT.sol";
-import {CapitalePricing} from "../src/CapitalePricing.sol";
-import {ICapitalePricing} from "../src/interfaces/ICapitalePricing.sol";
-import {ICapitaleVault} from "../src/interfaces/ICapitaleVault.sol";
+import {ViceNFT} from "../src/ViceNFT.sol";
+import {VicePricing} from "../src/VicePricing.sol";
+import {IVicePricing} from "../src/interfaces/IVicePricing.sol";
+import {IViceVault} from "../src/interfaces/IViceVault.sol";
 
-contract CapitaleNFTTest is BaseTest {
+contract ViceNFTTest is BaseTest {
     function setUp() public override {
         super.setUp();
         vm.warp(START);
     }
 
     function test_metadataAndMayor() public view {
-        assertEq(nft.name(), "Capitale");
-        assertEq(nft.symbol(), "PALAZZO");
+        assertEq(nft.name(), "VICE");
+        assertEq(nft.symbol(), "HIDEOUT");
         assertEq(nft.ownerOf(0), mayor);
         assertEq(nft.totalResidents(), 0);
         assertEq(nft.totalSupply(), 1);
@@ -26,7 +26,7 @@ contract CapitaleNFTTest is BaseTest {
     }
 
     function test_mintSequentialAndBurnsToDead() public {
-        uint256 dead0 = capitale.balanceOf(nft.DEAD());
+        uint256 dead0 = vice.balanceOf(nft.DEAD());
         uint256 a = build(alice, 0);
         uint256 b = build(bob, 1);
         assertEq(a, 1);
@@ -34,7 +34,7 @@ contract CapitaleNFTTest is BaseTest {
         assertEq(nft.ownerOf(1), alice);
         assertEq(nft.totalResidents(), 2);
         // Early bird: $40 at $0.001 = 40,000 tokens each, sent to the dead address.
-        assertEq(capitale.balanceOf(nft.DEAD()) - dead0, 80_000e18);
+        assertEq(vice.balanceOf(nft.DEAD()) - dead0, 80_000e18);
         assertEq(nft.totalBurned(), 80_000e18);
     }
 
@@ -53,25 +53,25 @@ contract CapitaleNFTTest is BaseTest {
 
     function test_districtAndStylePermanentAndValidated() public {
         uint256 id = build(alice, 1, 2, 0);
-        CapitaleNFT.Building memory b = nft.buildingOf(id);
+        ViceNFT.Building memory b = nft.buildingOf(id);
         assertEq(b.district, 1);
         assertEq(b.style, 2);
         assertTrue(b.earlyBird);
-        capitale.mint(alice, 1e24);
+        vice.mint(alice, 1e24);
         vm.startPrank(alice);
-        capitale.approve(address(nft), type(uint256).max);
-        vm.expectRevert(CapitaleNFT.BadDistrict.selector);
+        vice.approve(address(nft), type(uint256).max);
+        vm.expectRevert(ViceNFT.BadDistrict.selector);
         nft.mint(4, 0, 0, type(uint256).max); // cities are 0 Brickell .. 3 Miami Beach
-        vm.expectRevert(CapitaleNFT.BadStyle.selector);
+        vm.expectRevert(ViceNFT.BadStyle.selector);
         nft.mint(0, 3, 0, type(uint256).max);
         vm.stopPrank();
     }
 
     function test_maxPriceGuard() public {
-        capitale.mint(alice, 1e24);
+        vice.mint(alice, 1e24);
         vm.startPrank(alice);
-        capitale.approve(address(nft), type(uint256).max);
-        vm.expectRevert(abi.encodeWithSelector(CapitaleNFT.PriceAboveMax.selector, 40_000e18, 39_999e18));
+        vice.approve(address(nft), type(uint256).max);
+        vm.expectRevert(abi.encodeWithSelector(ViceNFT.PriceAboveMax.selector, 40_000e18, 39_999e18));
         nft.mint(0, 0, 0, 39_999e18);
         nft.mint(0, 0, 0, 40_000e18);
         vm.stopPrank();
@@ -79,10 +79,10 @@ contract CapitaleNFTTest is BaseTest {
 
     function test_notStarted() public {
         vm.warp(START - 1);
-        capitale.mint(alice, 1e24);
+        vice.mint(alice, 1e24);
         vm.startPrank(alice);
-        capitale.approve(address(nft), type(uint256).max);
-        vm.expectRevert(CapitalePricing.NotStarted.selector);
+        vice.approve(address(nft), type(uint256).max);
+        vm.expectRevert(VicePricing.NotStarted.selector);
         nft.mint(0, 0, 0, type(uint256).max);
         vm.stopPrank();
     }
@@ -97,7 +97,7 @@ contract CapitaleNFTTest is BaseTest {
         build(carol, 1, 0, 999);
         assertEq(nft.buildingOf(a).invites, 1);
         // Inviting gives nothing financial: no balance changes for the inviter.
-        assertEq(capitale.balanceOf(alice), 2 * 1_000_000e18 - 80_000e18);
+        assertEq(vice.balanceOf(alice), 2 * 1_000_000e18 - 80_000e18);
     }
 
     function test_transferable() public {
@@ -118,35 +118,35 @@ contract CapitaleNFTTest is BaseTest {
     }
 
     function test_setVaultOnlyOnceByDeployer() public {
-        vm.expectRevert(CapitaleNFT.VaultAlreadySet.selector);
-        nft.setVault(ICapitaleVault(address(1)));
-        CapitaleNFT n2 = new CapitaleNFT(IERC20(address(capitale)), ICapitalePricing(address(pricing)), mayor, 4);
+        vm.expectRevert(ViceNFT.VaultAlreadySet.selector);
+        nft.setVault(IViceVault(address(1)));
+        ViceNFT n2 = new ViceNFT(IERC20(address(vice)), IVicePricing(address(pricing)), mayor, 4);
         vm.prank(alice);
-        vm.expectRevert(CapitaleNFT.NotDeployer.selector);
-        n2.setVault(ICapitaleVault(address(1)));
+        vm.expectRevert(ViceNFT.NotDeployer.selector);
+        n2.setVault(IViceVault(address(1)));
     }
 
     function test_districtCountBounds() public {
         assertEq(nft.districts(), 4);
-        vm.expectRevert(CapitaleNFT.BadConfig.selector);
-        new CapitaleNFT(IERC20(address(capitale)), ICapitalePricing(address(pricing)), mayor, 0);
-        vm.expectRevert(CapitaleNFT.BadConfig.selector);
-        new CapitaleNFT(IERC20(address(capitale)), ICapitalePricing(address(pricing)), mayor, 5);
+        vm.expectRevert(ViceNFT.BadConfig.selector);
+        new ViceNFT(IERC20(address(vice)), IVicePricing(address(pricing)), mayor, 0);
+        vm.expectRevert(ViceNFT.BadConfig.selector);
+        new ViceNFT(IERC20(address(vice)), IVicePricing(address(pricing)), mayor, 5);
     }
 
     function test_mintRequiresVault() public {
-        CapitaleNFT n2 = new CapitaleNFT(IERC20(address(capitale)), ICapitalePricing(address(pricing)), mayor, 4);
-        vm.expectRevert(CapitaleNFT.VaultNotSet.selector);
+        ViceNFT n2 = new ViceNFT(IERC20(address(vice)), IVicePricing(address(pricing)), mayor, 4);
+        vm.expectRevert(ViceNFT.VaultNotSet.selector);
         n2.mint(0, 0, 0, 1);
     }
 
     function test_cityLocksAt3000() public {
         // Early bird: 300 sold out, then building pauses until the 6h window ends.
         buildMany(alice, 0, 300);
-        capitale.mint(bob, 1e24);
+        vice.mint(bob, 1e24);
         vm.startPrank(bob);
-        capitale.approve(address(nft), type(uint256).max);
-        vm.expectRevert(CapitalePricing.EarlyBirdSoldOut.selector);
+        vice.approve(address(nft), type(uint256).max);
+        vm.expectRevert(VicePricing.EarlyBirdSoldOut.selector);
         nft.mint(0, 0, 0, type(uint256).max);
         vm.stopPrank();
 
@@ -156,7 +156,7 @@ contract CapitaleNFTTest is BaseTest {
         assertEq(nft.totalResidents(), 3000);
         assertTrue(nft.isLocked());
         vm.startPrank(bob);
-        vm.expectRevert(CapitaleNFT.CityLocked.selector);
+        vm.expectRevert(ViceNFT.CityLocked.selector);
         nft.mint(0, 0, 0, type(uint256).max);
         vm.stopPrank();
         assertEq(vault.residents(), 3000);

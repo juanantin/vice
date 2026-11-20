@@ -64,7 +64,7 @@
   },
   "note_mockups": "The final mockups predate the Stockopolis alignment; banners show token + city but no 'THIS WEEK' tag. Style reference only.",
   "building_styles": {
-    "note": "3 permanent styles per district (CapitaleNFT style 0/1/2). Generated with TRANSPARENT backgrounds (check edges; clean up if needed). Same isometric angle as everything else.",
+    "note": "3 permanent styles per district (ViceNFT style 0/1/2). Generated with TRANSPARENT backgrounds (check edges; clean up if needed). Same isometric angle as everything else.",
     "STOCKIFY_Milano": [
       {
         "style": 0,

@@ -8,18 +8,18 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {Base64} from "@openzeppelin/contracts/utils/Base64.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
-import {ICapitalePricing} from "./interfaces/ICapitalePricing.sol";
-import {ICapitaleVault} from "./interfaces/ICapitaleVault.sol";
+import {IVicePricing} from "./interfaces/IVicePricing.sol";
+import {IViceVault} from "./interfaces/IViceVault.sol";
 
-/// @title CapitaleNFT ("Capitale" / PALAZZO)
+/// @title ViceNFT ("VICE" / HIDEOUT)
 /// @notice One NFT per building. 3,000 residential buildings plus the Mayor's building #0.
-///         Build by burning $CAPITALE: choose a district (0-3) and a style (0-2), both permanent.
+///         Build by burning $VICE: choose a district (0-3) and a style (0-2), both permanent.
 ///         Numbers are sequential city-wide; within a district, plots are handed out from the
 ///         centre outwards (plot 0 is nearest the Mayor). Buildings are freely transferable and
 ///         their unclaimed rewards and height travel with them (kept by the vault per building).
 ///         Inviter numbers are cosmetic only (flag / neon sign / fireworks); no profit share.
 /// @dev    Not upgradeable, no owner powers, no royalties.
-contract CapitaleNFT is ERC721Enumerable, ReentrancyGuard {
+contract ViceNFT is ERC721Enumerable, ReentrancyGuard {
     using SafeERC20 for IERC20;
     using Strings for uint256;
 
@@ -31,10 +31,10 @@ contract CapitaleNFT is ERC721Enumerable, ReentrancyGuard {
     uint8 public constant STYLES = 3;
     uint256 public constant MAYOR_ID = 0;
 
-    IERC20 public immutable capitale;
-    ICapitalePricing public immutable pricing;
+    IERC20 public immutable vice;
+    IVicePricing public immutable pricing;
     address private immutable deployer;
-    ICapitaleVault public vault;
+    IViceVault public vault;
 
     struct Building {
         uint8 district;
@@ -73,15 +73,15 @@ contract CapitaleNFT is ERC721Enumerable, ReentrancyGuard {
     error VaultAlreadySet();
     error BadConfig();
 
-    constructor(IERC20 capitale_, ICapitalePricing pricing_, address mayorOwner, uint8 districts_)
-        ERC721("Capitale", "PALAZZO")
+    constructor(IERC20 vice_, IVicePricing pricing_, address mayorOwner, uint8 districts_)
+        ERC721("VICE", "HIDEOUT")
     {
-        if (address(capitale_) == address(0) || address(pricing_) == address(0) || mayorOwner == address(0)) {
+        if (address(vice_) == address(0) || address(pricing_) == address(0) || mayorOwner == address(0)) {
             revert BadConfig();
         }
         if (districts_ == 0 || districts_ > 4) revert BadConfig();
         districts = districts_;
-        capitale = capitale_;
+        vice = vice_;
         pricing = pricing_;
         deployer = msg.sender;
         _buildings[MAYOR_ID].builtAt = uint64(block.timestamp);
@@ -89,7 +89,7 @@ contract CapitaleNFT is ERC721Enumerable, ReentrancyGuard {
     }
 
     /// @notice One-time link to the vault (the vault needs this contract's address and vice versa).
-    function setVault(ICapitaleVault vault_) external {
+    function setVault(IViceVault vault_) external {
         if (msg.sender != deployer) revert NotDeployer();
         if (address(vault) != address(0)) revert VaultAlreadySet();
         if (address(vault_) == address(0)) revert BadConfig();
@@ -102,7 +102,7 @@ contract CapitaleNFT is ERC721Enumerable, ReentrancyGuard {
     /// @param district  0 Brickell, 1 Downtown, 2 Wynwood, 3 Miami Beach
     /// @param style     0, 1 or 2
     /// @param inviter   inviting building number, 0 for none (cosmetic only)
-    /// @param maxPrice  most $CAPITALE the builder accepts to burn
+    /// @param maxPrice  most $VICE the builder accepts to burn
     function mint(uint8 district, uint8 style, uint256 inviter, uint256 maxPrice)
         external
         nonReentrant
@@ -138,7 +138,7 @@ contract CapitaleNFT is ERC721Enumerable, ReentrancyGuard {
         // Settles the week first, then registers the building for rewards and the street race.
         vault.onMint(id, district, earlyBird);
 
-        capitale.safeTransferFrom(msg.sender, DEAD, tokens);
+        vice.safeTransferFrom(msg.sender, DEAD, tokens);
         _safeMint(msg.sender, id);
         emit Built(id, msg.sender, district, style, plot, tokens, usd);
     }
@@ -186,9 +186,9 @@ contract CapitaleNFT is ERC721Enumerable, ReentrancyGuard {
             '"}]'
         );
         string memory json = string.concat(
-            '{"name":"Capitale #',
+            '{"name":"VICE #',
             id.toString(),
-            '","description":"A building in Capitale, a toy city of Miami on Elysium.","image":"data:image/svg+xml;base64,',
+            '","description":"A building in VICE, a toy city of Miami on Elysium.","image":"data:image/svg+xml;base64,',
             Base64.encode(bytes(_svg(id, b, level, mayor))),
             '","attributes":',
             attrs,
@@ -224,7 +224,7 @@ contract CapitaleNFT is ERC721Enumerable, ReentrancyGuard {
             '<text x="180" y="44" text-anchor="middle" font-family="sans-serif" font-size="30" font-weight="bold" fill="#fff0f6">',
             mayor ? "THE MAYOR" : _cityName(b.district),
             '</text><text x="180" y="72" text-anchor="middle" font-family="sans-serif" font-size="18" fill="#fff0f6">',
-            "Capitale #",
+            "VICE #",
             id.toString(),
             "</text></svg>"
         );

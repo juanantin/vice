@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {ICapitaleOracle} from "../../src/interfaces/ICapitaleOracle.sol";
+import {IViceOracle} from "../../src/interfaces/IViceOracle.sol";
 
-contract MockOracle is ICapitaleOracle {
+contract MockOracle is IViceOracle {
     uint256 public spot;
     uint256 public twap;
     uint256 public income;
     mapping(address => uint256) public price;
 
-    function setCapitale(uint256 spot_, uint256 twap_) external {
+    function setVice(uint256 spot_, uint256 twap_) external {
         spot = spot_;
         twap = twap_;
     }
@@ -22,12 +22,12 @@ contract MockOracle is ICapitaleOracle {
         price[t] = p;
     }
 
-    function capitaleUsdSpot() external view returns (uint256) {
+    function viceUsdSpot() external view returns (uint256) {
         require(spot != 0, "no spot");
         return spot;
     }
 
-    function capitaleUsdTwap() external view returns (uint256) {
+    function viceUsdTwap() external view returns (uint256) {
         require(twap != 0, "no twap");
         return twap;
     }

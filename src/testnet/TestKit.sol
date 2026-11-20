@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-// TEST ONLY. Stand-ins for $CAPITALE, $VOLTA (income + reward), SENT, VOID, the price feed,
+// TEST ONLY. Stand-ins for $VICE, $VOLTA (income + reward), SENT, VOID, the price feed,
 // the swap route and Volta's FeeEscrow, so the whole city can be exercised end to end.
 // Test tokens have no value. Never wire these into a real city.
 
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {ICapitaleOracle} from "../interfaces/ICapitaleOracle.sol";
+import {IViceOracle} from "../interfaces/IViceOracle.sol";
 import {ISwapAdapter} from "../interfaces/ISwapAdapter.sol";
 
 /// @notice Free-to-mint test token. `faucet()` gives anyone a fixed amount.
@@ -37,7 +37,7 @@ contract TestToken is ERC20 {
 }
 
 /// @notice Price feed whose prices the tester sets by hand (stands in for Volta's pool TWAPs).
-contract TestOracle is ICapitaleOracle, Ownable {
+contract TestOracle is IViceOracle, Ownable {
     uint256 public spot;
     uint256 public twap;
     uint256 public incomePrice;
@@ -47,7 +47,7 @@ contract TestOracle is ICapitaleOracle, Ownable {
 
     constructor(address owner_) Ownable(owner_) {}
 
-    function setCapitale(uint256 spot_, uint256 twap_) external onlyOwner {
+    function setVice(uint256 spot_, uint256 twap_) external onlyOwner {
         spot = spot_;
         twap = twap_;
         emit PricesSet();
@@ -63,12 +63,12 @@ contract TestOracle is ICapitaleOracle, Ownable {
         emit PricesSet();
     }
 
-    function capitaleUsdSpot() external view returns (uint256) {
+    function viceUsdSpot() external view returns (uint256) {
         require(spot != 0, "no price");
         return spot;
     }
 
-    function capitaleUsdTwap() external view returns (uint256) {
+    function viceUsdTwap() external view returns (uint256) {
         require(twap != 0, "no price");
         return twap;
     }
@@ -116,7 +116,7 @@ contract TestSwapAdapter is ISwapAdapter, Ownable {
 }
 
 /// @notice Stand-in for Volta's FeeEscrow. `simulateTrading` credits a recipient (the vault)
-///         with creator fees in the test income token, as $CAPITALE trading would.
+///         with creator fees in the test income token, as $VICE trading would.
 contract TestFeeEscrow {
     TestToken public immutable token;
     mapping(address => mapping(address => uint256)) public balances;
@@ -143,7 +143,7 @@ contract TestFeeEscrow {
 /// @notice Deploys every test stand-in in one transaction, with realistic starting prices.
 ///         Reward tokens: tVOLTA (also the income), tSENT, tVOID.
 contract TestKit {
-    TestToken public immutable capitale;
+    TestToken public immutable vice;
     TestToken public immutable volta;
     TestToken[3] public rewards;
     TestOracle public immutable oracle;
@@ -151,13 +151,13 @@ contract TestKit {
     TestFeeEscrow public immutable feeEscrow;
 
     constructor() {
-        capitale = new TestToken("Capitale (test)", "tCAPITALE", 18, 1_000_000e18);
+        vice = new TestToken("VICE (test)", "tVICE", 18, 1_000_000e18);
         volta = new TestToken("Volta (test)", "tVOLTA", 18, 100_000e18);
         rewards[0] = volta;
         rewards[1] = new TestToken("Sent.family (test)", "tSENT", 18, 0);
         rewards[2] = new TestToken("voidcash (test)", "tVOID", 18, 0);
         oracle = new TestOracle(address(this));
-        oracle.setCapitale(0.001e18, 0.001e18); // $0.001
+        oracle.setVice(0.001e18, 0.001e18); // $0.001
         oracle.setIncomeUsd(0.02e18); // $0.02 per VOLTA
         oracle.setTokenUsd(address(volta), 0.02e18);
         oracle.setTokenUsd(address(rewards[1]), 0.005e18);

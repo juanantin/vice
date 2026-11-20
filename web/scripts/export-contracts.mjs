@@ -5,9 +5,9 @@ import { readFileSync, writeFileSync } from "node:fs";
 
 const out = (file, name) => JSON.parse(readFileSync(new URL(`../../out/${file}/${name}.json`, import.meta.url), "utf8"));
 const abis = {
-  vaultAbi: out("CapitaleVault.sol", "CapitaleVault"),
-  nftAbi: out("CapitaleNFT.sol", "CapitaleNFT"),
-  pricingAbi: out("CapitalePricing.sol", "CapitalePricing"),
+  vaultAbi: out("ViceVault.sol", "ViceVault"),
+  nftAbi: out("ViceNFT.sol", "ViceNFT"),
+  pricingAbi: out("VicePricing.sol", "VicePricing"),
   testKitAbi: out("TestKit.sol", "TestKit"),
   testTokenAbi: out("TestKit.sol", "TestToken"),
   testOracleAbi: out("TestKit.sol", "TestOracle"),

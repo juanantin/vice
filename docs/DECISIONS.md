@@ -139,3 +139,9 @@ Change any of these by asking Claude; none is hard to revisit before deployment.
   it in Miami time (2 PM most weeks). Moving it to a Miami time needs a new US-DST library.
 - Game name/ticker still Capitale / $CAPITALE / PALAZZO, pending Juan. The site reads them from
   `GAME` in `web/lib/config.ts` (one place); the NFT name/symbol are strings in CapitaleNFT.
+
+# Name: VICE (Juan, 20 Nov 2026)
+- The game is VICE, token $VICE (was Capitale / $CAPITALE). Contracts renamed ViceNFT,
+  VicePricing, ViceVault (+ interfaces IVice*); NFT name "VICE", symbol HIDEOUT (was PALAZZO,
+  an Italian word). Test tokens tVICE etc. Entries above keep the old names as history.
+- Never extend the name to "Vice City" or use anything from Rockstar's games.

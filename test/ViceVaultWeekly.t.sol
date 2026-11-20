@@ -4,12 +4,12 @@ pragma solidity ^0.8.24;
 import {BaseTest} from "./Base.t.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {CapitaleVault, IFeeEscrow} from "../src/CapitaleVault.sol";
-import {ICapitaleOracle} from "../src/interfaces/ICapitaleOracle.sol";
+import {ViceVault, IFeeEscrow} from "../src/ViceVault.sol";
+import {IViceOracle} from "../src/interfaces/IViceOracle.sol";
 import {ISwapAdapter} from "../src/interfaces/ISwapAdapter.sol";
 
 /// Weekly vote, transfer lock, street competition, lazy settlement and rollover, permissions.
-contract CapitaleVaultWeeklyTest is BaseTest {
+contract ViceVaultWeeklyTest is BaseTest {
     function setUp() public override {
         super.setUp();
         goPublic();
@@ -32,7 +32,7 @@ contract CapitaleVaultWeeklyTest is BaseTest {
         build(alice, 1);
         vm.startPrank(alice);
         vault.vote(ids2(1, 2), 1);
-        vm.expectRevert(abi.encodeWithSelector(CapitaleVault.AlreadyVoted.selector, 1));
+        vm.expectRevert(abi.encodeWithSelector(ViceVault.AlreadyVoted.selector, 1));
         vault.vote(ids1(1), 0);
         vm.stopPrank();
         assertEq(vault.votesOf(0)[1], 2);
@@ -48,20 +48,20 @@ contract CapitaleVaultWeeklyTest is BaseTest {
     function test_duplicateIdsInOneCallRejected() public {
         build(alice, 0);
         vm.prank(alice);
-        vm.expectRevert(abi.encodeWithSelector(CapitaleVault.AlreadyVoted.selector, 1));
+        vm.expectRevert(abi.encodeWithSelector(ViceVault.AlreadyVoted.selector, 1));
         vault.vote(ids2(1, 1), 1);
     }
 
     function test_mayorAndNonOwnerCannotVote() public {
         build(alice, 0);
         vm.prank(mayor);
-        vm.expectRevert(CapitaleVault.MayorExcluded.selector);
+        vm.expectRevert(ViceVault.MayorExcluded.selector);
         vault.vote(ids1(0), 1);
         vm.prank(bob);
-        vm.expectRevert(abi.encodeWithSelector(CapitaleVault.NotBuildingOwner.selector, 1));
+        vm.expectRevert(abi.encodeWithSelector(ViceVault.NotBuildingOwner.selector, 1));
         vault.vote(ids1(1), 1);
         vm.prank(alice);
-        vm.expectRevert(CapitaleVault.BadToken.selector);
+        vm.expectRevert(ViceVault.BadToken.selector);
         vault.vote(ids1(1), 3); // only SENT (0), VOID (1) and VOLTA (2)
     }
 
@@ -87,7 +87,7 @@ contract CapitaleVaultWeeklyTest is BaseTest {
         vm.prank(alice);
         nft.transferFrom(alice, bob, 1);
         vm.prank(bob);
-        vm.expectRevert(abi.encodeWithSelector(CapitaleVault.AlreadyVoted.selector, 1));
+        vm.expectRevert(abi.encodeWithSelector(ViceVault.AlreadyVoted.selector, 1));
         vault.vote(ids1(1), 0);
         vm.prank(bob);
         assertEq(vault.voteAll(0), 0);
@@ -296,7 +296,7 @@ contract CapitaleVaultWeeklyTest is BaseTest {
         bytes memory err = abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, alice);
         vm.startPrank(alice);
         vm.expectRevert(err);
-        vault.setOracle(ICapitaleOracle(address(1)));
+        vault.setOracle(IViceOracle(address(1)));
         vm.expectRevert(err);
         vault.setAdapter(0, ISwapAdapter(address(1)));
         vm.expectRevert(err);
@@ -312,15 +312,15 @@ contract CapitaleVaultWeeklyTest is BaseTest {
         IERC20[] memory none = new IERC20[](0);
         ISwapAdapter[] memory noRoutes = new ISwapAdapter[](0);
         IFeeEscrow noEscrow = IFeeEscrow(address(0));
-        vm.expectRevert(CapitaleVault.BadConfig.selector);
+        vm.expectRevert(ViceVault.BadConfig.selector);
         deployVault(none, noRoutes, 4, noEscrow); // no reward token
         IERC20[] memory toks = allTokens();
         ISwapAdapter[] memory routes = allRoutes();
-        vm.expectRevert(CapitaleVault.BadConfig.selector);
+        vm.expectRevert(ViceVault.BadConfig.selector);
         deployVault(toks, noRoutes, 4, noEscrow); // tokens without swap routes
-        vm.expectRevert(CapitaleVault.BadConfig.selector);
+        vm.expectRevert(ViceVault.BadConfig.selector);
         deployVault(toks, routes, 0, noEscrow); // no city
-        vm.expectRevert(CapitaleVault.BadConfig.selector);
+        vm.expectRevert(ViceVault.BadConfig.selector);
         deployVault(toks, routes, 5, noEscrow); // too many cities
     }
 
@@ -343,9 +343,9 @@ contract CapitaleVaultWeeklyTest is BaseTest {
     function test_votesOnlyForTheThreeTokens() public {
         build(alice, 3); // a Miami Beach building votes like any other
         vm.startPrank(alice);
-        vm.expectRevert(CapitaleVault.BadToken.selector);
+        vm.expectRevert(ViceVault.BadToken.selector);
         vault.vote(ids1(1), 3);
-        vm.expectRevert(CapitaleVault.BadToken.selector);
+        vm.expectRevert(ViceVault.BadToken.selector);
         vault.voteAll(4);
         vault.vote(ids1(1), 1);
         vm.stopPrank();
@@ -355,20 +355,20 @@ contract CapitaleVaultWeeklyTest is BaseTest {
     }
 
     function test_onMintOnlyNft() public {
-        vm.expectRevert(CapitaleVault.NotNft.selector);
+        vm.expectRevert(ViceVault.NotNft.selector);
         vault.onMint(5, 0, false);
     }
 
     function test_badBuyParamsRejected() public {
-        CapitaleVault.BuyParams memory p = defaultParams();
+        ViceVault.BuyParams memory p = defaultParams();
         p.maxDeviationBps = 2_000;
         vm.prank(admin);
-        vm.expectRevert(CapitaleVault.BadConfig.selector);
+        vm.expectRevert(ViceVault.BadConfig.selector);
         vault.setBuyParams(p);
         p = defaultParams();
         p.maxOrder = 0.01 ether;
         vm.prank(admin);
-        vm.expectRevert(CapitaleVault.BadConfig.selector);
+        vm.expectRevert(ViceVault.BadConfig.selector);
         vault.setBuyParams(p);
     }
 
