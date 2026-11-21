@@ -7,7 +7,7 @@ import { encodeFunctionData, keccak256, encodeAbiParameters, parseEther, zeroAdd
 import { getWalletClient, switchChain } from "@wagmi/core";
 import { adapterAbi, nftAbi, oracleAbi, pricingAbi, timelockAbi, vaultAbi } from "./abis";
 import { CHAIN, publicClient, wagmiConfig } from "./wagmi";
-import { DISTRICTS, EARLY_BIRD_UNITS, EARLY_BIRD_USD, FOLLOWS_VOTE, TIERS } from "./config";
+import { DISTRICTS, EARLY_BIRD_UNITS, EARLY_BIRD_USD, FOLLOWS_VOTE, GAME, TICKER, TIERS } from "./config";
 import { VOLTA, creatorNftAbi, positionManagerAbi } from "./volta";
 
 export const TIMELOCK_DELAY = 48 * 3600;
@@ -119,7 +119,7 @@ export async function checkVice(vice: Address, me: Address | null): Promise<Toke
   if (key.currency0.toLowerCase() !== vice.toLowerCase() && key.currency1.toLowerCase() !== vice.toLowerCase()) {
     problems.push("This address is not a token launched on Volta.");
   } else if (pair.toLowerCase() !== VOLTA.volta.toLowerCase()) {
-    problems.push("$VICE must be paired with $VOLTA (its fees are the city tax, in VOLTA).");
+    problems.push(`${TICKER} must be paired with $VOLTA (its fees are the city tax, in VOLTA).`);
   }
   const id = keccak256(
     encodeAbiParameters(
@@ -168,7 +168,7 @@ export const STEPS: Step[] = [
   {
     key: "oracle",
     title: "Price oracle",
-    detail: "Reads $VICE, VOLTA, SENT and VOID prices from their Volta pools (10-minute averages) and HYPE in USD.",
+    detail: `Reads ${TICKER}, VOLTA, SENT and VOID prices from their Volta pools (10-minute averages) and HYPE in USD.`,
     done: (s) => !!s.oracle,
     run: async (s) => {
       const { oracleBytecode } = await import("./bytecode");
@@ -217,7 +217,7 @@ export const STEPS: Step[] = [
   {
     key: "nft",
     title: "Hideout NFTs",
-    detail: "The VICE / HIDEOUT collection: 3,000 hideouts plus the Mayor's #0 (minted to the deployer).",
+    detail: `The ${GAME.name} / HIDEOUT collection: 3,000 hideouts plus the Mayor's #0 (minted to the deployer).`,
     done: (s) => !!s.nft,
     run: async (s, me) => {
       const { nftBytecode } = await import("./bytecode");
@@ -311,7 +311,7 @@ export const STEPS: Step[] = [
   {
     key: "creatorNft",
     title: "Send Volta's creator NFT to the vault",
-    detail: "IRREVERSIBLE. From now on the creator share of every $VICE trade is the city tax. The NFT can never leave the vault.",
+    detail: `IRREVERSIBLE. From now on the creator share of every ${TICKER} trade is the city tax. The NFT can never leave the vault.`,
     done: (s) => !!s.creatorNftSent,
     run: async (s, me) => {
       const id = await read<bigint>(VOLTA.creatorNft, creatorNftAbi, "tokenId", [s.inputs.vice]);
@@ -366,9 +366,9 @@ export async function verifyLaunch(s: LaunchState): Promise<Verify> {
   add(eq(vNft, s.nft) && eq(nVault, s.vault) && eq(pNft, s.nft), "Vault, hideouts and prices are linked to each other.");
   add(eq(vOwner, s.timelock), "The vault is owned by the 48h timelock.");
   add(eq(pOwner, s.timelock) || eq(pPending, s.timelock), eq(pOwner, s.timelock) ? "The prices are owned by the timelock." : "The prices are being handed to the timelock (finish after 48h).");
-  add(eq(nftOwner, s.vault), "Volta's creator NFT for $VICE is in the vault.");
+  add(eq(nftOwner, s.vault), `Volta's creator NFT for ${TICKER} is in the vault.`);
   const f = (v: bigint | null) => (v ? `$${(Number(v) / 1e18).toPrecision(4)}` : "unavailable");
-  add(!!viceUsd && !!incomeUsd && !!sentUsd && !!voidUsd, `Prices: $VICE ${f(viceUsd)}, VOLTA ${f(incomeUsd)}, SENT ${f(sentUsd)}, VOID ${f(voidUsd)}.`);
-  add(!!quote, quote ? `Hideout #1 costs ${(Number(quote[0]) / 1e18).toLocaleString("en-US", { maximumFractionDigits: 0 })} $VICE ($${Number(quote[1]) / 1e18}).` : "Building is not open yet (it opens at the start time).");
+  add(!!viceUsd && !!incomeUsd && !!sentUsd && !!voidUsd, `Prices: ${TICKER} ${f(viceUsd)}, VOLTA ${f(incomeUsd)}, SENT ${f(sentUsd)}, VOID ${f(voidUsd)}.`);
+  add(!!quote, quote ? `Hideout #1 costs ${(Number(quote[0]) / 1e18).toLocaleString("en-US", { maximumFractionDigits: 0 })} ${TICKER} ($${Number(quote[1]) / 1e18}).` : "Building is not open yet (it opens at the start time).");
   return { ok: lines.every((l) => l.ok), lines };
 }

@@ -6,8 +6,8 @@
  *  (The NFT's name "VICE" and symbol HIDEOUT are strings in src/ViceNFT.sol.) */
 export const GAME = {
   name: "VICE",
-  /** Shown as $TICKER. */
-  ticker: "VICE",
+  /** Shown as $TICKER. "VTEST" while the rehearsal launch is checked; "VICE" for the real one. */
+  ticker: "VTEST",
   tagline: "Miami · on Volta",
   building: "hideout",
   buildings: "hideouts",
