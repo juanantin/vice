@@ -69,7 +69,7 @@ export function BuildTab() {
   const maxBurn = Math.ceil(q.tokens * 1.02);
   const testnet = city.mode === "testnet";
   const maxBurnWei = testnet && city.chain?.quote ? (city.chain.quote.tokensWei * 102n) / 100n : BigInt(maxBurn) * 10n ** 18n;
-  const unavailable = testnet ? (!city.chain ? "Load a test city in the Test lab first." : city.chain.quoteError) : null;
+  const unavailable = testnet ? (!city.chain ? "Loading the city from Elysium…" : city.chain.quoteError) : null;
   const short = testnet && !!city.chain?.quote && city.chain.viceWei < city.chain.quote.tokensWei;
   const full = city.buildings.length >= MAX_BUILDINGS;
   const invNum = parseInt(inviter, 10);
@@ -161,7 +161,7 @@ export function BuildTab() {
           </div>
           <p className="muted small">Approve once. The build reverts if the burn would be above your max (quote + 2%). Tokens go to the burn address.</p>
           {unavailable && <p className="warn small">{unavailable}</p>}
-          {short && <p className="warn small">Not enough test {TICKER}: get some in the Test lab.</p>}
+          {short && <p className="warn small">Not enough {TICKER} in your wallet for this build. Buy some on Volta first.</p>}
           <TxError error={error} />
         </>
       )}
@@ -490,7 +490,7 @@ export function SindacoTab() {
         <li>X / Telegram: announced at launch.</li>
         <li>Contracts are open source; their ABIs are published at launch (Elysium explorers cannot verify contracts yet).</li>
       </ul>
-      <p className="muted small">{GAME.name} is an experimental game. Reward tokens can lose value. Contracts are not yet audited. Nothing here is financial advice.</p>
+      <p className="muted small">{GAME.name} is an experimental game. Reward tokens can lose value. Contracts are not audited. Nothing here is financial advice.</p>
     </div>
   );
 }

@@ -145,16 +145,31 @@ PixiJS 8 + d3-geo. Must run smoothly on phones. Deployed on Vercel from `main` (
 `vercel.json` builds `web/`; this repo needs its own Vercel project).
 
 ## Build order (status)
-1. Contracts + tests — done (112 tests incl. invariants; ERC-20 income, FeeEscrow collection,
-   one token per district). Miami names in comments, tests and tokenURI.
-2. Price reading on Elysium: oracle from Volta's pool TWAPs (`Oracle.twapTick`) and price
-   calculators for VOLTA/SENT/VOID; $VICE spot/TWAP from its Volta pool. TODO.
-3. Swap adapters through Uniswap's UniversalRouter (VOLTA→SENT on the VOLTA/SENT pool;
-   VOLTA→HYPE→VOID). TODO.
-4. Keeper bot (hourly: collectCreatorFees, requestBuy, settle). TODO.
-5. Frontend — done for preview + test mode (test city deployed from the browser), Miami map.
-6. Slither/Aderyn + auditor checklist; real launch on Volta with the creator NFT sent to the
-   vault (irreversible) — only with Juan's explicit go.
+1. Contracts + tests — done (117 unit/fuzz/invariant tests). `requestBuy` runs the order with a
+   fixed 3M gas budget (BUY_GAS) so a low-gas caller can't trigger a rejection + 6h pause.
+2. Price reading — done: `src/volta/ViceOracle.sol`. Walks each Volta token's pool chain to HYPE
+   ($VICE→VOLTA→HYPE, SENT→VOLTA→HYPE, VOID→HYPE): spot from PoolManager slot0, TWAP from
+   Volta's Oracle (`twapTick`, 10-minute window — the spec asked 30-60 min; Volta only offers
+   10). HYPE/USD from Volta's USDC calculator through a stored reference, `poke()` every ≥5 min,
+   ±2% per poke. `tokenUsd` includes the route's Volta swap fees (currentSwapFee) so the 4%
+   check measures slippage only. No owner.
+3. Swap adapter — done: `src/volta/VoltaSwapAdapter.sol`, straight on the v4 PoolManager
+   (unlock callback), route derived from `PositionManager.poolKey`: VOLTA→SENT (1 hop),
+   VOLTA→HYPE→VOID (2 hops). Wallet gas estimates for these swaps run low: send extra gas.
+4. Keeper — done: `keeper/keeper.mjs` (viem) + `.github/workflows/keeper.yml` (every 15 min;
+   secret KEEPER_PRIVATE_KEY, variable VICE_VAULT): poke, collectCreatorFees, settle,
+   requestBuy (simulated first), payOps above $25.
+5. Frontend — done: preview, test lab, live mode (`LIVE` in `web/lib/config.ts`), and the launch
+   wizard at `/launch` (deploys everything from Juan's wallet, resumable, irreversible NFT step
+   gated by typing SEND, "Check everything" read-back). `script/DeployCity.s.sol` is the CLI
+   equivalent.
+6. Verified against live Elysium state (fork tests `test/fork/`, run with
+   `ELYSIUM_RPC=https://rpc.volta.family forge test --match-path 'test/fork/*'`): oracle vs
+   Volta's calculators, swaps within 0.5% of the fee-adjusted reference, a whole city with SENT
+   as stand-in $VICE (creator NFT → vault, fees, builds, buys, claims, ops). Also an anvil fork
+   rehearsal: launch page clicked through end to end (incl. the 48h finish), a hideout built
+   through the UI in live mode, keeper runs (collect + buy). Juan chose not to audit.
+7. Real launch: Juan follows `LAUNCH.md`. Never deploy or send funds for him.
 
 ## Toolchain notes (cloud sessions)
 - Foundry from npm (`@foundry-rs/forge`) with a solc-js shim (`forge test --use <shim>`) when
@@ -167,6 +182,7 @@ PixiJS 8 + d3-geo. Must run smoothly on phones. Deployed on Vercel from `main` (
   `--use-angle=swiftshader --enable-unsafe-swiftshader --ignore-gpu-blocklist`.
 
 ## Open questions
+- Launch day: $VICE swap fee and anti-snipe (Juan), ops wallet (Safe or plain), keeper wallet.
 - Token per district: suggested Downtown VOLTA, Brickell SENT, Miami Beach VOID, Wynwood vote.
 - Weekly deadline: keep Sunday 20:00 Rome, or move to a Miami time (contract change).
 - Swap fee for $VICE on Volta (1–5%) and anti-snipe settings: Juan's call at launch.
@@ -177,6 +193,7 @@ PixiJS 8 + d3-geo. Must run smoothly on phones. Deployed on Vercel from `main` (
 - Never ask for, print or store private keys or seed phrases. Use a gitignored `.env` or a
   browser/hardware wallet.
 - Never deploy to mainnet or send real funds without Juan's explicit confirmation.
-- Recommend a professional audit before mainnet; tests do not replace it.
+- Juan decided (Nov 2026) not to audit this token; he accepts the risk. Don't block on it, but
+  keep saying plainly that contracts are unaudited.
 - Invites stay cosmetic. Never add profit-sharing referrals.
 - Never push to `juanantin/capitale-volta` or `juanantin/capitale` from this project.

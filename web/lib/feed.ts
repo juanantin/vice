@@ -2,7 +2,7 @@
 // up, an invite) becomes a post, like a phone feed in the city. Purely cosmetic.
 
 import { useSyncExternalStore } from "react";
-import { DISTRICTS, GAME, TOKENS, cityToken } from "./config";
+import { DISTRICTS, GAME, LIVE, TOKENS, cityToken } from "./config";
 import { getCity, onCityEvent, type CityEvent } from "./store";
 
 export interface Post {
@@ -68,7 +68,10 @@ export function startFeed() {
   if (started) return;
   started = true;
   const now = Date.now();
-  const seed: Omit<Post, "id" | "at">[] = [
+  // The real city only shows real events; the sample posts are for the preview.
+  const seed: Omit<Post, "id" | "at">[] = LIVE.vault
+    ? [{ handle: NEWS, city: null, kind: "news", text: "Miami is open. Pick a district, open a hideout, take the turf." }]
+    : [
     { handle: NEWS, city: null, kind: "news", text: "Turf war update: Brickell leads the week on new recruits. Wynwood two behind." },
     { handle: DISTRICTS[3].handle, city: 3, kind: "score", token: 2, text: "Just pulled a 114,210 VOID score on Ocean Drive. Split 224 ways." },
     { handle: DISTRICTS[2].handle, city: 2, kind: "news", text: "Wynwood paints with whatever the city votes for. Get your vote in before Sunday." },

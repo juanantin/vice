@@ -52,7 +52,7 @@ export default function WhitePaper() {
         <li>Early bird: the first 300 {GAME.buildings} cost $40, for 6 hours from launch. If they sell out early, the next phase opens when the 6 hours end.</li>
         <li>Then: #1–800 $52 · #801–1,500 $68 · #1,501–2,300 $88 · #2,301–3,000 $120.</li>
         <li>You pay by burning {TICKER}: tokens burned = USD price ÷ {TICKER} price. Burned tokens go to the dead address forever.</li>
-        <li>During early bird the price used follows drops at once and follows rises only after they hold for 60 seconds. Afterwards it is the lower of the spot price and the 30-minute average, so pumping the price never makes building cheaper.</li>
+        <li>During early bird the price used follows drops at once and follows rises only after they hold for 60 seconds. Afterwards it is the lower of the spot price and the 10-minute average (from Volta's price oracle), so pumping the price never makes building cheaper.</li>
         <li>You set a maximum burn. If the price moves above it, the build is cancelled.</li>
       </ul>
 
@@ -100,8 +100,8 @@ export default function WhitePaper() {
 
       <h3>12. Risks</h3>
       <p className="muted">
-        Reward tokens can fall in value or become illiquid. Smart contracts can have bugs; {GAME.name} will be audited
-        before mainnet, but audits do not remove all risk. Prices come from on-chain averages that can be wrong in
+        Reward tokens can fall in value or become illiquid. Smart contracts can have bugs, and {GAME.name}&apos;s contracts
+        have not been audited. Prices come from on-chain averages that can be wrong in
         extreme markets. Only use money you can afford to lose.
       </p>
 

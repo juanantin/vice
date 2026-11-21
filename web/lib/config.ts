@@ -85,7 +85,13 @@ export const TIERS = [
   { upTo: 3000, usd: 120 },
 ];
 
-export const VICE_ADDRESS: string | null = null; // set at launch
+/** The real city, filled in after the launch (the launch page prints both addresses). While
+ *  `vault` is null the site shows the preview with sample data. */
+export const LIVE: { vault: `0x${string}` | null; vice: `0x${string}` | null } = {
+  vault: null,
+  vice: null,
+};
+export const VICE_ADDRESS = LIVE.vice;
 /** The city tax is paid in the asset $VICE is paired with on Volta. */
 export const INCOME = { symbol: "VOLTA", tokenAddress: "0x0f79931689Af199e7CF868ed1107bBA2C83c68f7" as `0x${string}` };
 export const GAS_SYMBOL = "HYPE";

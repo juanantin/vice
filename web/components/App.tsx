@@ -9,13 +9,13 @@ import TestLab from "./TestLab";
 import WalletButton from "./WalletButton";
 import ThemeToggle from "./ThemeToggle";
 import { useTheme } from "../lib/theme";
-import { connectCity, savedCity } from "../lib/chain";
+import { connectCity, isLiveCity, savedCity } from "../lib/chain";
 import Logo from "./Logo";
 import { FeedPanel, FeedTab } from "./Feed";
 import NewsTicker from "./NewsTicker";
 import WhitePaper from "./WhitePaper";
 import { BuildTab, MyPalazzoTab, RankingsTab, SindacoTab, TownHallTab, TreasuryTab } from "./Panels";
-import { MAX_BUILDINGS, TICKER, TOKENS, VOTE_CITIES } from "../lib/config";
+import { LIVE, MAX_BUILDINGS, TICKER, TOKENS, VOTE_CITIES } from "../lib/config";
 import { getCity, setLive, setMode, settleIfDue, tick, ui, useCity } from "../lib/store";
 
 // The tabs are apps on the crew's phone.
@@ -85,8 +85,8 @@ function Game() {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    // A shared test-city link (?city=0x…) opens straight into testnet mode.
-    if (new URLSearchParams(window.location.search).get("city")) setMode("testnet");
+    // After launch the real city loads by default; a shared test-city link (?city=0x…) opens that one.
+    if (LIVE.vault || new URLSearchParams(window.location.search).get("city")) setMode("testnet");
     const a = setInterval(tick, 3200);
     const b = setInterval(() => settleIfDue(Math.floor(Date.now() / 1000)), 1000);
     return () => {
@@ -96,6 +96,8 @@ function Game() {
   }, []);
 
   ui.panelOpen = tab !== null;
+  // The real city (after launch), also while it is still loading.
+  const liveCity = city.chain ? isLiveCity(city.chain.vault) : !!LIVE.vault && typeof window !== "undefined" && !new URLSearchParams(window.location.search).get("city");
   const D = TOKENS[city.currentToken];
   const current = TABS.find((t) => t.key === tab);
 
@@ -107,8 +109,15 @@ function Game() {
       <header className="top">
         <div className="token-card">
           <div className="token-name">{TICKER}</div>
-          <button className="ca" onClick={() => { setCopied(true); setTimeout(() => setCopied(false), 1200); }}>
-            CA: {copied ? "announced at launch" : "coming soon"}
+          <button
+            className="ca"
+            onClick={() => {
+              if (LIVE.vice) navigator.clipboard?.writeText(LIVE.vice).catch(() => {});
+              setCopied(true);
+              setTimeout(() => setCopied(false), 1200);
+            }}
+          >
+            CA: {LIVE.vice ? (copied ? "copied" : `${LIVE.vice.slice(0, 6)}…${LIVE.vice.slice(-4)}`) : copied ? "announced at launch" : "coming soon"}
           </button>
           <div className="via">via <b>Volta</b> · Elysium</div>
         </div>
@@ -135,8 +144,8 @@ function Game() {
             </>
           ) : (
             <>
-              <span>Test city</span>
-              <b>● On chain</b>
+              <span>{liveCity ? "Miami" : "Test city"}</span>
+              <b>● {liveCity ? (city.chain ? "Live" : "Loading") : "On chain"}</b>
             </>
           )}
         </button>

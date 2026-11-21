@@ -80,6 +80,8 @@ contract ViceVault is IViceVault, Ownable2Step, ReentrancyGuard {
     uint256 public constant STREET_BPS = 1_500;
     uint256 public constant MAX_BUILDINGS = 3000;
     uint256 public constant IDLE_AFTER = 24 hours;
+    /// Gas budget for one buy order (a real three-token order on Volta pools uses about 1.2M).
+    uint256 public constant BUY_GAS = 3_000_000;
     uint256 public constant MAX_WEEKS_PER_SETTLE = 52;
     /// Storage is sized for up to this many districts (cities) and reward tokens.
     uint8 public constant MAX_DISTRICTS = 4;
@@ -214,6 +216,7 @@ contract ViceVault is IViceVault, Ownable2Step, ReentrancyGuard {
     error PriceDeviation(uint256 got, uint256 minOut);
     error NothingToPay();
     error OpsTransferFailed();
+    error NotEnoughGas();
 
     /// Deploy-time settings (grouped to keep the constructor readable).
     struct Setup {
@@ -473,7 +476,10 @@ contract ViceVault is IViceVault, Ownable2Step, ReentrancyGuard {
             return false;
         }
         uint256 amount = pendingFunds < p.maxOrder ? pendingFunds : p.maxOrder;
-        try this.executeBuy(amount, res, oracle.incomeUsd(), p.maxDeviationBps) {
+        // The order runs with a fixed gas budget, and the caller must bring enough for it: a
+        // caller can't make it fail (and pause buying for 6h) by sending too little gas.
+        if (gasleft() < BUY_GAS + BUY_GAS / 63 + 50_000) revert NotEnoughGas();
+        try this.executeBuy{gas: BUY_GAS}(amount, res, oracle.incomeUsd(), p.maxDeviationBps) {
             lastBuyAt = block.timestamp;
             bought = true;
         } catch (bytes memory reason) {

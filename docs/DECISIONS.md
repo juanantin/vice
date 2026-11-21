@@ -145,3 +145,17 @@ Change any of these by asking Claude; none is hard to revisit before deployment.
   VicePricing, ViceVault (+ interfaces IVice*); NFT name "VICE", symbol HIDEOUT (was PALAZZO,
   an Italian word). Test tokens tVICE etc. Entries above keep the old names as history.
 - Never extend the name to "Vice City" or use anything from Rockstar's games.
+
+# Ready for the real launch (21 Nov 2026)
+- Juan: launch without an audit ("I assume the risk").
+- Oracle: Volta pools only. 10-minute TWAP (Volta's Oracle window) instead of the spec's
+  30-60 min. HYPE/USD via a stored reference (poke ≥5 min apart, ±2% per step) so flash
+  manipulation of the HYPE/USDC pool can't move build prices.
+- The vault's reference price for a reward token includes Volta's swap fees on the route
+  (2% VOLTA→SENT; ~3% VOLTA→HYPE→VOID today), so the 4% band is for slippage/impact only.
+- Fix: requestBuy forwards a fixed 3M gas budget to the order and reverts (NotEnoughGas) if the
+  caller sends less, instead of treating an out-of-gas as a rejected order (6h pause).
+- Launch order: $VICE on Volta with a scheduled opening; deploy + wire the city; creator NFT to
+  the vault before trading opens; pricing hands ownership to the 48h timelock (accepted after
+  48h); the vault is owned by the timelock from deployment.
+- Default buy sizes: $20 minimum, $150 maximum per order (converted to VOLTA at deploy).

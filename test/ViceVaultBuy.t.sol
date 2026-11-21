@@ -28,6 +28,15 @@ contract ViceVaultBuyTest is BaseTest {
         assertEq(vault.residentsFunds() + vault.streetFunds() + vault.opsFunds(), amount);
     }
 
+    /// A caller can't starve the order of gas to make it fail and pause buying for 6 hours.
+    function test_lowGasCallCannotPauseBuying() public {
+        payTax(1 ether);
+        vm.expectRevert(ViceVault.NotEnoughGas.selector);
+        vault.requestBuy{gas: 2_500_000}();
+        assertEq(vault.pausedUntil(), 0);
+        assertTrue(vault.requestBuy());
+    }
+
     function test_payOpsAnyone() public {
         payTax(1 ether);
         vm.prank(bob);

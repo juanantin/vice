@@ -15,11 +15,17 @@ and `docs/DECISIONS.md` (how ambiguities were resolved).
 | `VicePricing` | Early bird / tier USD prices, $VICE price rules |
 | `ViceVault` | Tax split, buys, dividends, height, weekly vote, street race |
 | `libraries/RomeTime` | Sunday 20:00 Rome deadline with daylight saving |
+| `volta/ViceOracle` | USD prices from Volta's pools (TWAP + spot), HYPE/USD reference |
+| `volta/VoltaSwapAdapter` | Buys SENT / VOID through Volta's Uniswap v4 pools |
+
+Launch: see `LAUNCH.md` (the `/launch` page deploys everything from your wallet).
+Keeper: `keeper/keeper.mjs`, run every 15 min by `.github/workflows/keeper.yml`.
 
 ## Develop
 ```sh
 forge build
 forge test            # unit + fuzz + invariant tests
+ELYSIUM_RPC=https://rpc.volta.family forge test --match-path 'test/fork/*'   # against live Elysium
 ```
 ## Website preview (`web/`)
 Next.js + PixiJS, unplugged (sample data; a hidden test lab deploys a test city).
@@ -31,4 +37,4 @@ cd web && npm install && npm run dev
 On Vercel it deploys as-is: `vercel.json` builds `web/` and serves the static export (`web/out`).
 No Root Directory setting needed (setting it to `web` also works).
 
-Status: **not audited**. Do not deploy to mainnet without a professional audit.
+Status: **not audited** (the owner's decision). Use at your own risk.

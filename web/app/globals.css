@@ -2024,3 +2024,103 @@ h3 {
 @media (max-width: 899px) {
   .map-credit { bottom: 112px; right: 8px; font-size: 8px; }
 }
+
+/* ─────────── launch page (/launch, not linked from the game) ─────────── */
+.launch {
+  /* The game locks page scrolling (full-screen map); the launch page scrolls on its own. */
+  position: fixed;
+  inset: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 24px max(16px, calc((100vw - 760px) / 2)) 80px;
+  color: var(--ivory);
+  font-family: var(--sans);
+}
+.launch-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.launch-head h1 {
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: 34px;
+  margin: 0;
+}
+.launch-card {
+  background: linear-gradient(180deg, var(--panel-from), var(--panel-to));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 14px;
+}
+.launch-card h2 {
+  font-size: 22px;
+  margin: 0 0 10px;
+}
+.launch-card label {
+  display: block;
+  margin: 12px 0 6px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.launch-card label .input {
+  margin-top: 6px;
+  width: 100%;
+}
+.launch-card .row label {
+  flex: 1;
+}
+.launch-steps {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.launch-steps li {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  opacity: 0.55;
+}
+.launch-steps li.next,
+.launch-steps li.done {
+  opacity: 1;
+}
+.launch-steps li.done b {
+  color: var(--up);
+}
+.launch-steps p {
+  margin: 4px 0 0;
+}
+.btn.danger {
+  background: var(--down);
+  color: #fff;
+}
+.launch .mono,
+.launch .code {
+  font-family: var(--mono);
+  font-size: 12px;
+  word-break: break-all;
+}
+.launch .code {
+  white-space: pre-wrap;
+  background: var(--void);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px;
+}
+.launch a {
+  color: var(--mint);
+}
+.launch .small,
+.launch .muted {
+  font-family: var(--sans);
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 13px;
+}

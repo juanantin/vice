@@ -1,0 +1,7 @@
+{
+  "name": "vice-keeper",
+  "private": true,
+  "type": "module",
+  "scripts": { "run": "node keeper.mjs" },
+  "dependencies": { "viem": "2.57.10" }
+}

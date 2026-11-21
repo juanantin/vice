@@ -3,9 +3,9 @@
 
 import { formatEther, formatUnits, parseEventLogs, type Address } from "viem";
 import { getWalletClient, switchChain } from "@wagmi/core";
-import { nftAbi, pricingAbi, testAdapterAbi, testFeeEscrowAbi, testOracleAbi, testTokenAbi, vaultAbi } from "./abis";
+import { nftAbi, oracleAbi, pricingAbi, testAdapterAbi, testFeeEscrowAbi, testOracleAbi, testTokenAbi, vaultAbi } from "./abis";
 import { CHAIN, publicClient, wagmiConfig } from "./wagmi";
-import { DISTRICTS, TOKENS, cityToken, type DistrictId, type TokenId } from "./config";
+import { DISTRICTS, LIVE, TOKENS, cityToken, type DistrictId, type TokenId } from "./config";
 import { announce, getCity, registerChain, setChainState, type Building, type ChainInfo, type Purchase } from "./store";
 
 const MAX = 2n ** 256n - 1n;
@@ -28,10 +28,17 @@ export interface CityAddresses {
 
 const KEY = "vice.testCity";
 
+/** True when the loaded city is the real, launched one. */
+export function isLiveCity(vault: string | null | undefined) {
+  return !!vault && !!LIVE.vault && vault.toLowerCase() === LIVE.vault.toLowerCase();
+}
+
 export function savedCity(): Address | null {
   try {
     const q = new URLSearchParams(window.location.search).get("city");
     if (q && /^0x[0-9a-fA-F]{40}$/.test(q)) return q as Address;
+    // After launch the real city is the default (a test city needs an explicit ?city= link).
+    if (LIVE.vault) return LIVE.vault;
     const ls = window.localStorage.getItem(KEY);
     if (ls && /^0x[0-9a-fA-F]{40}$/.test(ls)) return ls as Address;
   } catch {
@@ -95,7 +102,7 @@ async function readCity(a: CityAddresses, me: Address | null) {
   const v = { address: a.vault, abi: vaultAbi } as const;
   const n = { address: a.nft, abi: nftAbi } as const;
   const p = { address: a.pricing, abi: pricingAbi } as const;
-  const o = { address: a.oracle, abi: testOracleAbi } as const;
+  const o = { address: a.oracle, abi: oracleAbi } as const;
   const c = { address: a.vice, abi: testTokenAbi } as const;
   const rv = <T>(fn: string, args: unknown[] = []) =>
     publicClient.readContract({ ...v, functionName: fn as never, args: args as never }) as Promise<T>;
@@ -130,7 +137,8 @@ async function readCity(a: CityAddresses, me: Address | null) {
     publicClient.readContract({ ...o, functionName: "incomeUsd" }),
     publicClient.readContract({ ...o, functionName: "viceUsdSpot" }),
     publicClient.readContract({ ...p, functionName: "isEarlyBird" }),
-    publicClient.readContract({ ...o, functionName: "owner" }),
+    // Only the test oracle has an owner (the real one has none).
+    publicClient.readContract({ address: a.oracle, abi: testOracleAbi, functionName: "owner" }).catch(() => "0x0000000000000000000000000000000000000000"),
     publicClient.readContract({ address: a.adapter, abi: testAdapterAbi, functionName: "qualityBps" }).catch(() => 10_000n),
     ...a.tokens.map((t) => publicClient.readContract({ ...o, functionName: "tokenUsd", args: [t] })),
     ...a.tokens.map((t) => publicClient.readContract({ address: t, abi: testTokenAbi, functionName: "balanceOf", args: [a.vault] })),
@@ -341,7 +349,7 @@ export async function send(tx: Parameters<Awaited<ReturnType<typeof wallet>>["wr
 }
 
 function need(): CityAddresses {
-  if (!addresses) throw new Error("No test city loaded.");
+  if (!addresses) throw new Error("The city is still loading.");
   return addresses;
 }
 
