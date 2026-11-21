@@ -2,7 +2,9 @@
 // up, an invite) becomes a post, like a phone feed in the city. Purely cosmetic.
 
 import { useSyncExternalStore } from "react";
-import { DISTRICTS, GAME, LIVE, TOKENS, cityToken } from "./config";
+import { DISTRICTS, GAME, LIVE, TICKER, TOKENS, VOTE_CITIES, cityToken } from "./config";
+
+const VOTE_NAMES = () => VOTE_CITIES().map((d) => d.city).join(" and ");
 import { getCity, onCityEvent, type CityEvent } from "./store";
 
 export interface Post {
@@ -54,6 +56,24 @@ export function postFromEvent(e: CityEvent): Omit<Post, "id" | "at"> | null {
       const d = DISTRICTS[e.building.district];
       return { handle: NEWS, city: null, kind: "level", text: `Hideout #${fmt(e.building.id)} in ${d.city} just added a floor. Rep level ${e.from + 1}.` };
     }
+    case "voted": {
+      const d = e.district === null ? null : DISTRICTS[e.district];
+      return {
+        handle: d?.handle ?? NEWS,
+        city: d?.id ?? null,
+        kind: "news",
+        text: `${e.count === 1 ? "A hideout" : `${fmt(e.count)} hideouts`}${d ? ` in ${d.city}` : ""} just voted ${TOKENS[e.token].token} for ${VOTE_NAMES()}'s next job.`,
+      };
+    }
+    case "taxIn":
+      return { handle: NEWS, city: null, kind: "news", text: `The vault just collected ${fmt(e.amount)} VOLTA of city tax from ${TICKER} trading.` };
+    case "weekClosed":
+      return {
+        handle: NEWS,
+        city: null,
+        kind: "news",
+        text: `Week closed. ${VOTE_NAMES()} now runs on ${TOKENS[e.token].token}.${e.winners.length ? ` Turf race: ${e.winners.map((w) => DISTRICTS[w].city).join(" & ")} took the street pool.` : ""}`,
+      };
     case "invited": {
       const d = DISTRICTS[e.building.district];
       return { handle: d.handle, city: d.id, kind: "invite", text: `#${fmt(e.building.id)} keeps bringing friends to ${d.city}. Fireworks tonight.` };
@@ -79,6 +99,17 @@ export function startFeed() {
   ];
   seed.forEach((p, i) => push(p, now - (i + 1) * 7 * 60_000));
   onCityEvent((e) => {
+    if (e.type === "history") {
+      // The real city's recent history replaces the welcome post.
+      if (e.events.length) {
+        posts = [];
+        for (const h of e.events) {
+          const p = postFromEvent(h.event);
+          if (p) push(p, h.at);
+        }
+      }
+      return;
+    }
     const p = postFromEvent(e);
     if (p) push(p);
   });

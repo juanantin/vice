@@ -5,8 +5,8 @@ import { formatEther, formatUnits, parseEventLogs, type Address } from "viem";
 import { getWalletClient, switchChain } from "@wagmi/core";
 import { nftAbi, oracleAbi, pricingAbi, testAdapterAbi, testFeeEscrowAbi, testOracleAbi, testTokenAbi, vaultAbi } from "./abis";
 import { CHAIN, publicClient, wagmiConfig } from "./wagmi";
-import { DISTRICTS, LIVE, TOKENS, cityToken, type DistrictId, type TokenId } from "./config";
-import { announce, getCity, registerChain, setChainState, type Building, type ChainInfo, type Purchase } from "./store";
+import { DISTRICTS, LIVE, TOKENS, cityToken, levelForUsd, type DistrictId, type TokenId } from "./config";
+import { announce, getCity, registerChain, setChainState, type Building, type ChainInfo, type CityEvent, type Purchase } from "./store";
 
 const MAX = 2n ** 256n - 1n;
 const num = (v: bigint, d = 18) => Number(formatUnits(v, d));
@@ -281,6 +281,58 @@ export function chainError() {
   return lastError;
 }
 
+/** Turn what changed between two reads of the city into feed posts and map effects. */
+function announceChanges(before: ReturnType<typeof getCity>, next: Awaited<ReturnType<typeof readCity>>) {
+  const firstRead = !before.chain;
+  if (firstRead) {
+    // Seed the feed with the city's real recent history.
+    const events: { at: number; event: CityEvent }[] = [];
+    for (const b of next.buildings.slice(-6)) events.push({ at: b.builtAt * 1000, event: { type: "built", building: b } });
+    for (const p of next.purchases.slice(0, 4)) {
+      const onToken = next.buildings.filter((b) => cityToken(DISTRICTS[b.district], next.currentToken) === p.token).length;
+      events.push({ at: p.at * 1000, event: { type: "bought", token: p.token, tokens: p.tokens, usd: p.usd, buildings: onToken } });
+    }
+    events.sort((x, y) => x.at - y.at);
+    announce({ type: "history", events });
+    return;
+  }
+  // New hideouts (anyone's), invites and level-ups.
+  const old = new Map(before.buildings.map((b) => [b.id, b]));
+  for (const b of next.buildings) {
+    const o = old.get(b.id);
+    if (!o) {
+      announce({ type: "built", building: b });
+      continue;
+    }
+    if (b.invites > o.invites) announce({ type: "invited", building: b });
+    const from = levelForUsd(o.claimedUsd);
+    if (levelForUsd(b.claimedUsd) > from) announce({ type: "levelUp", building: b, from });
+  }
+  // Votes in the current week: which token gained.
+  if (next.week === before.week) {
+    next.votes.forEach((v, t) => {
+      const gained = v - (before.votes[t] ?? 0);
+      if (gained > 0) {
+        const voters = next.buildings.filter((b) => b.votedWeek === next.week && old.get(b.id)?.votedWeek !== next.week);
+        const ds = [...new Set(voters.map((b) => b.district))];
+        announce({ type: "voted", token: t as TokenId, count: gained, district: ds.length === 1 ? ds[0] : null });
+      }
+    });
+  } else if (next.week > before.week) {
+    const top = Math.max(0, ...before.newBuilds);
+    const winners = top > 0 ? before.newBuilds.map((n, d) => (n === top ? d : -1)).filter((d) => d >= 0) : [];
+    announce({ type: "weekClosed", token: next.currentToken, winners });
+  }
+  // City tax collected into the vault.
+  if (next.totalTax > before.totalTax + 1e-9) announce({ type: "taxIn", amount: next.totalTax - before.totalTax });
+  // A new on-chain buy: the score card and the map celebration, like in the preview.
+  if (next.totalPurchases > before.totalPurchases && next.purchases[0]) {
+    const p = next.purchases[0];
+    const onToken = next.buildings.filter((b) => cityToken(DISTRICTS[b.district], next.currentToken) === p.token).length;
+    announce({ type: "bought", token: p.token, tokens: p.tokens, usd: p.usd, buildings: onToken });
+  }
+}
+
 export async function refresh() {
   if (!addresses) return;
   const gen = generation;
@@ -290,12 +342,7 @@ export async function refresh() {
     lastError = null;
     const before = getCity();
     setChainState(next);
-    // A new on-chain buy: let the map celebrate it like in the preview.
-    if (before.chain && next.totalPurchases > before.totalPurchases && next.purchases[0]) {
-      const p = next.purchases[0];
-      const onToken = next.buildings.filter((b) => cityToken(DISTRICTS[b.district], next.currentToken) === p.token).length;
-      announce({ type: "bought", token: p.token, tokens: p.tokens, usd: p.usd, buildings: onToken });
-    }
+    announceChanges(before, next);
   } catch (e) {
     lastError = (e as Error).message?.split("\n")[0] ?? String(e);
     console.warn("VICE: could not read the city", e);

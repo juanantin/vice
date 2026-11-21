@@ -18,7 +18,7 @@ export default function MapView() {
   const labels = useRef<(HTMLSpanElement | null)[]>([]);
   const [ready, setReady] = useState(false);
   const [selected, setSelected] = useState<number | null>(null);
-  const [toast, setToast] = useState<{ key: number; token: number; tokens: number; buildings: number } | null>(null);
+  const [toast, setToast] = useState<{ key: number; kicker: string; big: string; sub: string; color: string } | null>(null);
   const city = useCity();
   const theme = useTheme();
   // Camera kept across theme switches (the map is redrawn in the other palette).
@@ -68,7 +68,20 @@ export default function MapView() {
         const cur = getCity().currentToken;
         const cities = DISTRICTS.filter((d) => cityToken(d, cur) === e.token).map((d) => d.id);
         scene.celebrate(parseInt(ink(TOKENS[e.token]).slice(1), 16), cities);
-        setToast({ key: Date.now(), token: e.token, tokens: e.tokens, buildings: e.buildings });
+        const on = DISTRICTS.filter((d) => cityToken(d, cur) === e.token).map((d) => d.city).join(" and ");
+        setToast({ key: Date.now(), kicker: "The score", big: `${Math.round(e.tokens).toLocaleString()} ${TOKENS[e.token].token}`, sub: `split ${e.buildings.toLocaleString()} ways in ${on}`, color: ink(TOKENS[e.token]) });
+      }
+      // Live city: a card for every new hideout, vote and level-up (the preview has its own pace).
+      if (getCity().mode === "testnet") {
+        if (e.type === "built") {
+          const D = DISTRICTS[e.building.district];
+          setToast({ key: Date.now(), kicker: "New hideout", big: `#${e.building.id} ${D.city}`, sub: `${D.crew} · ${D.styles[e.building.style]}`, color: ink(D) });
+        }
+        if (e.type === "voted") setToast({ key: Date.now(), kicker: "Vote in", big: TOKENS[e.token].token, sub: `${e.count} vote${e.count === 1 ? "" : "s"} for the next job`, color: ink(TOKENS[e.token]) });
+        if (e.type === "levelUp") {
+          const D = DISTRICTS[e.building.district];
+          setToast({ key: Date.now(), kicker: "Level up", big: `#${e.building.id} · L${e.from + 1}`, sub: `${D.city} just got taller`, color: ink(D) });
+        }
       }
       if (e.type === "focus") {
         scene.flyTo(e.id);
@@ -142,15 +155,10 @@ export default function MapView() {
       {!ready && <div className="map-loading">Lighting up Miami…</div>}
       <div className="map-credit">{MAP_ATTRIBUTION}</div>
       {toast && (
-        <div key={toast.key} className="buy-toast" style={{ ["--c" as string]: ink(TOKENS[toast.token]) }} onAnimationEnd={() => setToast(null)}>
-          <span className="kicker">The score</span>
-          <b>
-            {Math.round(toast.tokens).toLocaleString()} {TOKENS[toast.token].token}
-          </b>
-          <span className="kicker">
-            split {toast.buildings.toLocaleString()} ways in{" "}
-            {DISTRICTS.filter((d) => cityToken(d, city.currentToken) === toast.token).map((d) => d.city).join(" and ")}
-          </span>
+        <div key={toast.key} className="buy-toast" style={{ ["--c" as string]: toast.color }} onAnimationEnd={() => setToast(null)}>
+          <span className="kicker">{toast.kicker}</span>
+          <b>{toast.big}</b>
+          <span className="kicker">{toast.sub}</span>
         </div>
       )}
       {sel && d && (

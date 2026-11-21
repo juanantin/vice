@@ -309,6 +309,7 @@ export function TownHallTab() {
   const city = useCity();
   const now = useNow();
   const [pending, run, error] = useTx();
+  const [voted, setVoted] = useState<string | null>(null);
   const total = city.votes.reduce((a, b) => a + b, 0);
   const max = Math.max(...city.votes);
   const leaders = city.votes.filter((v) => v === max && v > 0).length;
@@ -333,13 +334,14 @@ export function TownHallTab() {
                 {v === max && v > 0 && leaders === 1 && <span className="tag lead">LEADING</span>}
               </div>
               <div className="bar big"><i style={{ width: `${pct}%` }} /><span>{fmt(v)} · {pct.toFixed(0)}%</span></div>
-              <button className="btn small" disabled={!mineUnvoted.length || !!pending} onClick={() => run(`v${d.id}`, () => vote(mineUnvoted, d.id))}>
+              <button className="btn small" disabled={!mineUnvoted.length || !!pending} onClick={() => run(`v${d.id}`, async () => { const n = mineUnvoted.length; await vote(mineUnvoted, d.id); setVoted(`Voted! ${n} hideout${n === 1 ? "" : "s"} backing ${d.token} for next week.`); })}>
                 {pending === `v${d.id}` ? "…" : `Vote all (${mineUnvoted.length})`}
               </button>
             </div>
           );
         })}
       </div>
+      {voted && <p className="ok-box">{voted}</p>}
       <TxError error={error} />
       <p className="muted small">The Mayor&apos;s building does not vote. A building that already voted this week can&apos;t vote again after being sold, until next week.</p>
     </div>

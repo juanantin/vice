@@ -108,7 +108,12 @@ export type CityEvent =
   | { type: "levelUp"; building: Building; from: number }
   | { type: "invited"; building: Building }
   | { type: "focus"; id: number }
-  | { type: "bought"; token: TokenId; tokens: number; usd: number; buildings: number };
+  | { type: "bought"; token: TokenId; tokens: number; usd: number; buildings: number }
+  | { type: "voted"; token: TokenId; count: number; district: number | null }
+  | { type: "taxIn"; amount: number }
+  | { type: "weekClosed"; token: TokenId; winners: number[] }
+  /** Live city, first load: recent real history for the feed (oldest first, with times). */
+  | { type: "history"; events: { at: number; event: CityEvent }[] };
 
 // ─────────── deterministic sample data ───────────
 
