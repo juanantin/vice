@@ -2177,3 +2177,11 @@ h3 {
   .guide-title { font-size: 17px; }
   .guide p { font-size: 13px; margin: 4px 0 8px; }
 }
+
+/* Token balance next to the connected wallet. */
+.wallet-bal {
+  margin-left: 8px;
+  padding-left: 8px;
+  border-left: 1px solid currentColor;
+  opacity: 0.9;
+}

@@ -18,6 +18,12 @@ export default function WalletButton() {
     return (
       <button className="btn wallet on" onClick={() => disconnect()} title="Disconnect">
         ● {short(address)}
+        {/* The token balance once the city has read this wallet. */}
+        {city.mode === "testnet" && city.me === address.toLowerCase() && (
+          <span className="wallet-bal">
+            {city.viceBalance.toLocaleString("en-US", { notation: "compact", maximumFractionDigits: 1 })} {TICKER}
+          </span>
+        )}
       </button>
     );
   }
