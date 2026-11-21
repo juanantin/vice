@@ -402,8 +402,29 @@ export function RankingsTab() {
 export function TreasuryTab() {
   const city = useCity();
   const now = useNow();
+  const [pending, run, error] = useTx();
+  const [msg, setMsg] = useState<string | null>(null);
+  const onChain = city.mode === "testnet" && !!city.chain;
   return (
     <div className="tab">
+      {onChain && (
+        <div className="ok-box">
+          <p className="small">
+            The keeper does this every 15 minutes, but anyone can push the city along: collect the trading fees Volta
+            holds for the vault, or start a buy (the vault's rules still decide size, timing and price).
+          </p>
+          <div className="row">
+            <button className="btn small" disabled={!!pending} onClick={() => run("collect", async () => { await testActions.collectFees(); setMsg("Fees collected into the vault."); })}>
+              {pending === "collect" ? "…" : "Collect fees"}
+            </button>
+            <button className="btn small" disabled={!!pending} onClick={() => run("buy", async () => setMsg(await testActions.requestBuy()))}>
+              {pending === "buy" ? "…" : "Buy now"}
+            </button>
+          </div>
+          {msg && <p className="small">{msg}</p>}
+          <TxError error={error} />
+        </div>
+      )}
       <div className="stat-grid">
         <div><span className="muted">Total city tax</span><b>{fmt(city.totalTax)} VOLTA</b></div>
         <div><span className="muted">Purchases</span><b>{fmt(city.totalPurchases)}</b></div>
