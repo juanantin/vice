@@ -88,8 +88,8 @@ export const TIERS = [
 /** The real city, filled in after the launch (the launch page prints both addresses). While
  *  `vault` is null the site shows the preview with sample data. */
 export const LIVE: { vault: `0x${string}` | null; vice: `0x${string}` | null } = {
-  vault: null,
-  vice: null,
+  vault: "0x5840306E5A03dfFc8c247AEC70484d7754B381f8",
+  vice: "0x1f7Efa7f66EEcf76f5f1d102fc8BFe0dbb3C3374",
 };
 export const VICE_ADDRESS = LIVE.vice;
 /** The city tax is paid in the asset $VICE is paired with on Volta. */
