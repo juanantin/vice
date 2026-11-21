@@ -17,7 +17,7 @@ import Guide from "./Guide";
 import WhitePaper from "./WhitePaper";
 import { BuildTab, MyPalazzoTab, RankingsTab, SindacoTab, TownHallTab, TreasuryTab } from "./Panels";
 import { LIVE, MAX_BUILDINGS, TICKER, TOKENS, VOTE_CITIES } from "../lib/config";
-import { getCity, setLive, setMode, settleIfDue, tick, ui, useCity } from "../lib/store";
+import { getCity, onCityEvent, setLive, setMode, settleIfDue, tick, ui, useCity } from "../lib/store";
 
 // The tabs are apps on the crew's phone.
 const TABS = [
@@ -84,6 +84,10 @@ function Game() {
     }, 450);
   };
   const [copied, setCopied] = useState(false);
+
+  // "Show on map" (and tapping a hideout in a list) flies the camera there: close the panel so
+  // the move and the building are visible.
+  useEffect(() => onCityEvent((e) => { if (e.type === "focus") setTab(null); }), []);
 
   useEffect(() => {
     // After launch the real city loads by default; a shared test-city link (?city=0x…) opens that one.
