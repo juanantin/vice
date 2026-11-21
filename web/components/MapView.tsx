@@ -4,7 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { CityScene } from "../lib/scene";
 import { DISTRICTS, GAME, TOKENS, cityToken, levelForUsd } from "../lib/config";
 import { DISTRICT_PLACES, LAND_LABELS, MAP_ATTRIBUTION, PLACES, SEA_LABELS } from "../lib/plots";
-import { getCity, onCityEvent, useCity } from "../lib/store";
+import { getCity, onCityEvent, useCity, type CityEvent } from "../lib/store";
+import { ago as agoShort } from "../lib/feed";
 import { applyArtTheme } from "../lib/art";
 import { ink, useTheme } from "../lib/theme";
 
@@ -19,6 +20,23 @@ export default function MapView() {
   const [ready, setReady] = useState(false);
   const [selected, setSelected] = useState<number | null>(null);
   const [toast, setToast] = useState<{ key: number; kicker: string; big: string; sub: string; color: string } | null>(null);
+  // Cards wait their turn: several events in a row show one after another.
+  const cardQueue = useRef<{ kicker: string; big: string; sub: string; color: string }[]>([]);
+  const showing = useRef(false);
+  const showCard = (c: { kicker: string; big: string; sub: string; color: string }) => {
+    if (!showing.current) {
+      showing.current = true;
+      setToast({ key: Date.now() + Math.random(), ...c });
+    } else if (cardQueue.current.length < 8) cardQueue.current.push(c);
+  };
+  const nextCard = () => {
+    const n = cardQueue.current.shift();
+    if (n) setToast({ key: Date.now() + Math.random(), ...n });
+    else {
+      showing.current = false;
+      setToast(null);
+    }
+  };
   const city = useCity();
   const theme = useTheme();
   // Camera kept across theme switches (the map is redrawn in the other palette).
@@ -62,27 +80,45 @@ export default function MapView() {
       placeBanners();
       setReady(true);
     });
+    type Card = { kicker: string; big: string; sub: string; color: string };
+    const cardFor = (e: CityEvent, ago?: string): Card | null => {
+      const live = getCity().mode === "testnet";
+      const when = ago ? ` · ${ago}` : "";
+      if (e.type === "bought") {
+        const cur = getCity().currentToken;
+        const on = DISTRICTS.filter((d) => cityToken(d, cur) === e.token).map((d) => d.city).join(" and ");
+        return { kicker: `The score${when}`, big: `${Math.round(e.tokens).toLocaleString()} ${TOKENS[e.token].token}`, sub: e.buildings === 1 ? `for the 1 hideout in ${on}` : `split ${e.buildings.toLocaleString()} ways in ${on}`, color: ink(TOKENS[e.token]) };
+      }
+      // Live city: a card for every new hideout, vote and level-up (the preview has its own pace).
+      if (!live) return null;
+      if (e.type === "built") {
+        const D = DISTRICTS[e.building.district];
+        return { kicker: `New hideout${when}`, big: `#${e.building.id} ${D.city}`, sub: `${D.crew} · ${D.styles[e.building.style]}`, color: ink(D) };
+      }
+      if (e.type === "voted") return { kicker: `Vote in${when}`, big: TOKENS[e.token].token, sub: `${e.count} vote${e.count === 1 ? "" : "s"} for the next job`, color: ink(TOKENS[e.token]) };
+      if (e.type === "levelUp") {
+        const D = DISTRICTS[e.building.district];
+        return { kicker: `Level up${when}`, big: `#${e.building.id} · L${e.from + 1}`, sub: `${D.city} just got taller`, color: ink(D) };
+      }
+      return null;
+    };
     const off = onCityEvent((e) => {
       if (e.type === "invited") scene.burstAt(e.building.id);
       if (e.type === "bought") {
         const cur = getCity().currentToken;
         const cities = DISTRICTS.filter((d) => cityToken(d, cur) === e.token).map((d) => d.id);
         scene.celebrate(parseInt(ink(TOKENS[e.token]).slice(1), 16), cities);
-        const on = DISTRICTS.filter((d) => cityToken(d, cur) === e.token).map((d) => d.city).join(" and ");
-        setToast({ key: Date.now(), kicker: "The score", big: `${Math.round(e.tokens).toLocaleString()} ${TOKENS[e.token].token}`, sub: `split ${e.buildings.toLocaleString()} ways in ${on}`, color: ink(TOKENS[e.token]) });
       }
-      // Live city: a card for every new hideout, vote and level-up (the preview has its own pace).
-      if (getCity().mode === "testnet") {
-        if (e.type === "built") {
-          const D = DISTRICTS[e.building.district];
-          setToast({ key: Date.now(), kicker: "New hideout", big: `#${e.building.id} ${D.city}`, sub: `${D.crew} · ${D.styles[e.building.style]}`, color: ink(D) });
-        }
-        if (e.type === "voted") setToast({ key: Date.now(), kicker: "Vote in", big: TOKENS[e.token].token, sub: `${e.count} vote${e.count === 1 ? "" : "s"} for the next job`, color: ink(TOKENS[e.token]) });
-        if (e.type === "levelUp") {
-          const D = DISTRICTS[e.building.district];
-          setToast({ key: Date.now(), kicker: "Level up", big: `#${e.building.id} · L${e.from + 1}`, sub: `${D.city} just got taller`, color: ink(D) });
+      // Someone just arrived: replay the latest real events as cards, one after another.
+      if (e.type === "history") {
+        for (const h of e.events.slice(-6)) {
+          const a = agoShort(h.at);
+          const c = cardFor(h.event, a === "now" ? "just now" : `${a} ago`);
+          if (c) showCard(c);
         }
       }
+      const c = cardFor(e);
+      if (c) showCard(c);
       if (e.type === "focus") {
         scene.flyTo(e.id);
         scene.select(e.id);
@@ -155,7 +191,7 @@ export default function MapView() {
       {!ready && <div className="map-loading">Lighting up Miami…</div>}
       <div className="map-credit">{MAP_ATTRIBUTION}</div>
       {toast && (
-        <div key={toast.key} className="buy-toast" style={{ ["--c" as string]: toast.color }} onAnimationEnd={() => setToast(null)}>
+        <div key={toast.key} className="buy-toast" style={{ ["--c" as string]: toast.color }} onAnimationEnd={(e) => { if (e.target === e.currentTarget) nextCard(); }}>
           <span className="kicker">{toast.kicker}</span>
           <b>{toast.big}</b>
           <span className="kicker">{toast.sub}</span>

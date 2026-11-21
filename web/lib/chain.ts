@@ -96,6 +96,7 @@ export async function resolveAddresses(vault: Address): Promise<CityAddresses> {
 
 // ─────────── reading the city ───────────
 
+const blockTimes = new Map<bigint, number>();
 const buildingCache = new Map<number, { district: DistrictId; style: 0 | 1 | 2; plot: number; inviter: number; earlyBird: boolean; builtAt: number }>();
 
 async function readCity(a: CityAddresses, me: Address | null) {
@@ -179,8 +180,11 @@ async function readCity(a: CityAddresses, me: Address | null) {
     ),
   );
   // Recent purchases from events (public nodes limit how far back logs can go).
-  const logsP = publicClient
-    .getContractEvents({ address: a.vault, abi: vaultAbi, eventName: "Bought", fromBlock: block.number > 9000n ? block.number - 9000n : 0n })
+  // Elysium makes ~4 blocks a second: look back ~1 day, or ~40 min if the node refuses a wide range.
+  const buysSince = (span: bigint) =>
+    publicClient.getContractEvents({ address: a.vault, abi: vaultAbi, eventName: "Bought", fromBlock: block.number > span ? block.number - span : 0n });
+  const logsP = buysSince(330_000n)
+    .catch(() => buysSince(9000n))
     .catch(() => null);
 
   const [[votes, newBuilds, incomeUsd, capUsd, isEB, oracleOwner, quality, ...rest], { quote, quoteError }, [gasBalance, capWei, allowance], statics, live, logs] =
@@ -214,9 +218,15 @@ async function readCity(a: CityAddresses, me: Address | null) {
   const districtCount = Array.from({ length: a.districts }, () => 0);
   for (const b of buildings) districtCount[b.district]++;
 
-  const purchases: Purchase[] = (logs ?? []).reverse().slice(0, 30).map((l) => {
+  // Real times for the recent buys (blocks are read once, then remembered).
+  const recent = (logs ?? []).reverse().slice(0, 30);
+  const need = [...new Set(recent.map((l) => l.blockNumber).filter((n): n is bigint => n !== null && !blockTimes.has(n)))];
+  const got = await Promise.all(need.map((n) => publicClient.getBlock({ blockNumber: n }).then((b) => [n, Number(b.timestamp)] as const).catch(() => null)));
+  for (const g of got) if (g) blockTimes.set(g[0], g[1]);
+  const purchases: Purchase[] = recent.map((l) => {
     const args = l.args as { token: number; amountIn: bigint; tokensOut: bigint; usd: bigint };
-    return { at: Number(block.timestamp) - Number(block.number - (l.blockNumber ?? block.number)) * 2, token: args.token as TokenId, amount: num(args.amountIn), tokens: num(args.tokensOut), usd: num(args.usd) };
+    const at = (l.blockNumber !== null && blockTimes.get(l.blockNumber)) || Number(block.timestamp);
+    return { at, token: args.token as TokenId, amount: num(args.amountIn), tokens: num(args.tokensOut), usd: num(args.usd) };
   });
 
   const chain: ChainInfo = {

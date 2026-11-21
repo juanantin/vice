@@ -43,7 +43,7 @@ export function postFromEvent(e: CityEvent): Omit<Post, "id" | "at"> | null {
         city: lead?.id ?? null,
         kind: "score",
         token: e.token,
-        text: `Just pulled a ${fmt(e.tokens)} ${TOKENS[e.token].token} score. Split ${fmt(e.buildings)} ways${
+        text: `Just pulled a ${fmt(e.tokens)} ${TOKENS[e.token].token} score. ${e.buildings === 1 ? "All for 1 hideout" : `Split ${fmt(e.buildings)} ways`}${
           cities.length > 1 ? ` with ${cities.slice(1).map((d) => d.crew).join(" and ")}` : ""
         }.`,
       };

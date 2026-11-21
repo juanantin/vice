@@ -2185,3 +2185,12 @@ h3 {
   border-left: 1px solid currentColor;
   opacity: 0.9;
 }
+
+/* Event cards (new hideout, vote, score) show above any open panel; they fade out by themselves. */
+.buy-toast {
+  z-index: 30;
+  pointer-events: none;
+}
+.buy-toast {
+  animation-duration: 5s;
+}
