@@ -105,7 +105,8 @@ async function main() {
       }
       // Swaps through Volta's hook are easy to under-estimate: send 30% more gas than estimated.
       const est = await pub.estimateContractGas({ address: target.address, abi: target.abi, functionName, account });
-      const hash = await wallet.writeContract({ ...sim.request, gas: (est * 13n) / 10n });
+      // Sign locally with the keeper's own key (public RPCs don't sign for anyone).
+      const hash = await wallet.writeContract({ ...sim.request, account, gas: (est * 13n) / 10n });
       const r = await pub.waitForTransactionReceipt({ hash });
       log(`${label}: ${r.status} ${hash}`);
     } catch (e) {
