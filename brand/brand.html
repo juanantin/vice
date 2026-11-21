@@ -1,0 +1,77 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #111; }
+  .card { position: relative; overflow: hidden; }
+  .pfp { width: 1000px; height: 1000px; background: radial-gradient(circle at 50% 38%, #4a1a7a 0%, #2a1250 40%, #0b1634 78%); }
+  .sun { position: absolute; border-radius: 50%; background: linear-gradient(180deg, #ffe066 0%, #ff8a4c 52%, #ff4f8b 100%); box-shadow: 0 0 120px 20px #ff4f8b66; }
+  .stripes { position: absolute; left: 0; right: 0; }
+  .stripes i { display: block; background: #2a1250; }
+  .water { position: absolute; left: 0; right: 0; bottom: 0; background: linear-gradient(180deg, #0b1634, #070d22); }
+  .horizon { position: absolute; left: 0; right: 0; height: 6px; background: #3ff5ff; box-shadow: 0 0 30px 6px #3ff5ffaa; }
+  .reflect { position: absolute; left: 50%; transform: translateX(-50%); }
+  .reflect i { display: block; margin: 0 auto 14px; height: 5px; border-radius: 3px; background: #ff4f8b; opacity: 0.6; box-shadow: 0 0 14px #ff4f8b; }
+  svg.palm { position: absolute; }
+  .word { position: absolute; left: 0; right: 0; text-align: center; font-family: Anton, Impact, sans-serif; font-style: italic; color: #fff0f6;
+          text-shadow: 0 0 18px #ff4f8b, 0 0 42px #ff4f8bcc, 6px 6px 0 #7b2ff7; letter-spacing: 0.02em; }
+  .banner { width: 1500px; height: 500px; }
+  .banner .map { position: absolute; inset: 0; background: url(map-clean.png) center 46% / 1500px auto no-repeat; filter: saturate(1.15); }
+  .banner .shade { position: absolute; inset: 0; background: linear-gradient(90deg, #0b1634f2 0%, #0b1634d9 30%, #0b163466 58%, #0b163410 100%); }
+  .banner .haze { position: absolute; inset: 0; background: linear-gradient(180deg, #7b2ff733, transparent 40%, transparent 70%, #0b1634aa); }
+  .tag { position: absolute; font-family: "JetBrains Mono", monospace; font-weight: 700; letter-spacing: 0.32em; color: #3ff5ff; text-transform: uppercase; }
+  .sub { position: absolute; font-family: "JetBrains Mono", monospace; font-weight: 500; letter-spacing: 0.08em; color: #fff0f6cc; }
+  .chips span { display: inline-block; margin-right: 12px; padding: 6px 14px; border-radius: 999px; font: 700 18px "JetBrains Mono", monospace; letter-spacing: 0.12em; }
+</style>
+</head>
+<body>
+
+<!-- 1. Profile picture: sunset + palm (X crops it to a circle; everything important sits in the middle). -->
+<div class="card pfp" id="pfp1">
+  <div class="sun" style="left:230px; top:200px; width:540px; height:540px;"></div>
+  <div class="stripes" style="top:520px;"><i style="height:22px; margin-bottom:30px"></i><i style="height:30px; margin-bottom:32px"></i><i style="height:40px"></i></div>
+  <div class="water" style="top:690px;"></div>
+  <div class="horizon" style="top:686px;"></div>
+  <div class="reflect" style="top:722px;"><i style="width:360px"></i><i style="width:260px"></i><i style="width:170px"></i><i style="width:90px"></i></div>
+  <svg class="palm" width="1000" height="1000" viewBox="0 0 1000 1000" style="left:0;top:0">
+    <g stroke="#0b1634" stroke-linecap="round" fill="none">
+      <path d="M672 700 Q640 520 650 330" stroke-width="34"/>
+      <path d="M650 330 Q540 280 450 380 M650 330 Q770 270 860 370 M650 330 Q600 200 480 190 M650 330 Q710 190 840 200 M650 330 Q655 240 630 150" stroke-width="30"/>
+    </g>
+  </svg>
+</div>
+
+<!-- 2. Profile picture with the wordmark. -->
+<div class="card pfp" id="pfp2">
+  <div class="sun" style="left:250px; top:150px; width:500px; height:500px;"></div>
+  <div class="stripes" style="top:450px;"><i style="height:22px; margin-bottom:28px"></i><i style="height:32px"></i></div>
+  <svg class="palm" width="1000" height="1000" viewBox="0 0 1000 1000" style="left:0;top:0">
+    <g stroke="#0b1634" stroke-linecap="round" fill="none">
+      <path d="M690 640 Q660 470 668 300" stroke-width="30"/>
+      <path d="M668 300 Q570 255 490 345 M668 300 Q775 245 855 335 M668 300 Q625 185 520 175 M668 300 Q722 180 838 188 M668 300 Q672 220 650 140" stroke-width="27"/>
+    </g>
+  </svg>
+  <div class="water" style="top:600px;"></div>
+  <div class="horizon" style="top:596px;"></div>
+  <div class="word" style="top:560px; font-size:270px; line-height:1;">VICE</div>
+</div>
+
+<!-- 3. Header banner (1500 x 500). X puts the profile picture over the bottom-left, so the text sits on the right. -->
+<div class="card banner" id="banner">
+  <div class="map" style="background-position: 18% 46%;"></div>
+  <div class="haze"></div>
+  <div class="shade" style="background: linear-gradient(270deg, #0b1634f5 0%, #0b1634e0 34%, #0b163470 58%, #0b163415 100%);"></div>
+  <div class="sun" style="left:840px; top:70px; width:110px; height:110px; box-shadow:0 0 60px 10px #ff4f8b55"></div>
+  <div class="stripes" style="top:138px; left:826px; width:140px;"><i style="height:7px; margin-bottom:8px; background:#101639"></i><i style="height:9px; background:#101639"></i></div>
+  <div class="word" style="left:985px; right:auto; top:42px; font-size:160px; text-align:left; line-height:1;">VICE</div>
+  <div class="tag" style="left:842px; top:238px; font-size:20px;">Miami · on Volta · Elysium</div>
+  <div class="sub" style="left:842px; top:282px; font-size:21px; width:620px; line-height:1.5;">Open a hideout. Run a crew. Take the turf.<br>Every trade buys rewards for the residents.</div>
+  <div class="chips" style="position:absolute; left:842px; top:380px;">
+    <span style="background:#f5c45122; color:#f5c451; border:1px solid #f5c451">BRICKELL</span><span style="background:#ff8a4c22; color:#ff8a4c; border:1px solid #ff8a4c">DOWNTOWN</span><br><span style="margin-top:10px;background:#b8f04a22; color:#b8f04a; border:1px solid #b8f04a">WYNWOOD</span><span style="margin-top:10px;background:#3fd9f522; color:#3fd9f5; border:1px solid #3fd9f5">MIAMI BEACH</span>
+  </div>
+</div>
+
+</body>
+</html>
