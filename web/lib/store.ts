@@ -263,7 +263,28 @@ export function setMode(mode: Mode) {
   if (s.mode === mode) return;
   if (mode === "testnet") {
     previewState = s;
-    state = { ...s, mode, live: false, chain: null, buildings: [], districtCount: DISTRICTS.map(() => 0), purchases: [], me: "" };
+    // Start from a blank city: nothing from the sample data may show while the chain loads.
+    const zeros = <T,>(arr: readonly T[]) => arr.map(() => 0) as unknown;
+    state = {
+      ...s,
+      mode,
+      live: false,
+      chain: null,
+      buildings: [],
+      districtCount: DISTRICTS.map(() => 0) as CityState["districtCount"],
+      newBuilds: zeros(s.newBuilds) as CityState["newBuilds"],
+      votes: zeros(s.votes) as CityState["votes"],
+      holdings: zeros(s.holdings) as CityState["holdings"],
+      purchases: [],
+      totalTax: 0,
+      totalPurchases: 0,
+      totalBoughtUsd: 0,
+      residentsFunds: 0,
+      streetFunds: 0,
+      opsFunds: 0,
+      opsPaid: 0,
+      me: "",
+    };
   } else {
     state = previewState ?? makeInitial();
   }

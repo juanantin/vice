@@ -1,4 +1,4 @@
-import { createConfig, http } from "wagmi";
+import { createConfig, fallback, http } from "wagmi";
 import { injected } from "wagmi/connectors";
 import { createPublicClient, defineChain } from "viem";
 
@@ -12,11 +12,13 @@ export const elysium = defineChain({
   blockExplorers: { default: { name: "Elysium explorer", url: "https://elysium.kinetiq.xyz" } },
 });
 
-export const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL || "https://rpc.elysium.kinetiq.xyz";
+// Volta's RPC answers browsers (CORS) and batches; Kinetiq's is the backup. Both reach the same chain.
+export const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL || "https://rpc.volta.family";
+const BACKUP_RPC = "https://rpc.elysium.kinetiq.xyz";
 export const CHAIN = elysium;
 export const EXPLORER = "https://elysium.kinetiq.xyz";
 
-const transport = http(RPC_URL, { batch: { batchSize: 40 } });
+const transport = fallback([http(RPC_URL, { batch: { batchSize: 40 } }), http(BACKUP_RPC, { batch: { batchSize: 40 } })]);
 
 export const wagmiConfig = createConfig({
   chains: [CHAIN],

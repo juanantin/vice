@@ -9,7 +9,7 @@ import TestLab from "./TestLab";
 import WalletButton from "./WalletButton";
 import ThemeToggle from "./ThemeToggle";
 import { useTheme } from "../lib/theme";
-import { connectCity, isLiveCity, savedCity } from "../lib/chain";
+import { chainError, connectCity, isLiveCity, savedCity } from "../lib/chain";
 import Logo from "./Logo";
 import { FeedPanel, FeedTab } from "./Feed";
 import NewsTicker from "./NewsTicker";
@@ -145,7 +145,7 @@ function Game() {
           ) : (
             <>
               <span>{liveCity ? "Miami" : "Test city"}</span>
-              <b>● {liveCity ? (city.chain ? "Live" : "Loading") : "On chain"}</b>
+              <b>● {liveCity ? (city.chain ? "Live" : chainError() ? "Can't reach Elysium" : "Loading") : "On chain"}</b>
             </>
           )}
         </button>

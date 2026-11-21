@@ -315,11 +315,24 @@ export async function connectCity(vault: Address | null, me: Address | null) {
     addresses = null;
     return;
   }
+  const gen = generation;
   if (!addresses || addresses.vault.toLowerCase() !== vault.toLowerCase()) {
     buildingCache.clear();
-    addresses = await resolveAddresses(vault);
+    addresses = null;
+    // Keep trying until the chain answers (a network hiccup must not leave the page stuck).
+    while (gen === generation) {
+      try {
+        addresses = await resolveAddresses(vault);
+        lastError = null;
+        break;
+      } catch (e) {
+        lastError = (e as Error).message?.split("\n")[0] ?? String(e);
+        console.warn("VICE: could not reach the city, retrying", e);
+        await new Promise((r) => setTimeout(r, 8000));
+      }
+    }
+    if (gen !== generation) return;
   }
-  const gen = generation;
   const loop = async () => {
     await refresh();
     if (gen === generation) timer = setTimeout(loop, 8000);
