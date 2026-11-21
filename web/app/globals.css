@@ -2124,3 +2124,56 @@ h3 {
   letter-spacing: 0;
   font-size: 13px;
 }
+
+/* "Your next move" guide: one suggestion at a time (right side on desktop, above the tabs on phones). */
+.guide {
+  position: absolute;
+  right: 16px;
+  bottom: calc(var(--tabs-h) + var(--ticker-h) + 22px);
+  width: 320px;
+  z-index: 4;
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  border: 1px solid rgb(var(--glow) / 0.55);
+  background: linear-gradient(180deg, var(--panel-from), var(--panel-to));
+  box-shadow: var(--panel-shadow), 0 0 28px -8px rgb(var(--glow) / 0.6);
+  color: var(--ivory);
+  animation: guide-in 0.4s ease-out;
+}
+.guide .close {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+}
+.guide-title {
+  font-family: var(--display);
+  font-size: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--mint);
+  padding-right: 22px;
+}
+.guide p {
+  margin: 6px 0 10px;
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+.guide a.btn {
+  display: inline-block;
+  text-decoration: none;
+}
+@keyframes guide-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+@media (max-width: 899px) {
+  .guide {
+    left: 10px;
+    right: 10px;
+    width: auto;
+    bottom: calc(var(--tabs-h) + var(--ticker-h) + env(safe-area-inset-bottom) + 10px);
+    padding: 12px 14px;
+  }
+  .guide-title { font-size: 17px; }
+  .guide p { font-size: 13px; margin: 4px 0 8px; }
+}

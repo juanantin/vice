@@ -13,6 +13,7 @@ import { chainError, connectCity, isLiveCity, savedCity } from "../lib/chain";
 import Logo from "./Logo";
 import { FeedPanel, FeedTab } from "./Feed";
 import NewsTicker from "./NewsTicker";
+import Guide from "./Guide";
 import WhitePaper from "./WhitePaper";
 import { BuildTab, MyPalazzoTab, RankingsTab, SindacoTab, TownHallTab, TreasuryTab } from "./Panels";
 import { LIVE, MAX_BUILDINGS, TICKER, TOKENS, VOTE_CITIES } from "../lib/config";
@@ -189,6 +190,7 @@ function Game() {
         </div>
       )}
 
+      {!tab && <Guide onTab={(t) => setTab(t)} />}
       <FeedPanel />
       <NewsTicker />
 

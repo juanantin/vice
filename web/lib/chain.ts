@@ -131,7 +131,8 @@ async function readCity(a: CityAddresses, me: Address | null) {
 
   const N = Number(totalResidents);
   const nextId = N + 1;
-  const [votes, newBuilds, incomeUsd, capUsd, isEB, oracleOwner, quality, ...rest] = await Promise.all([
+  // Everything below only depends on the first wave, so it goes out together (one round trip).
+  const wave2 = Promise.all([
     rv<readonly bigint[]>("votesOf", [week]),
     rv<readonly bigint[]>("newBuildsOf", [week]),
     publicClient.readContract({ ...o, functionName: "incomeUsd" }),
@@ -143,41 +144,29 @@ async function readCity(a: CityAddresses, me: Address | null) {
     ...a.tokens.map((t) => publicClient.readContract({ ...o, functionName: "tokenUsd", args: [t] })),
     ...a.tokens.map((t) => publicClient.readContract({ address: t, abi: testTokenAbi, functionName: "balanceOf", args: [a.vault] })),
   ]);
-  const nT = a.tokens.length;
-  const tokenUsd = rest.slice(0, nT) as bigint[];
-  const holdings = rest.slice(nT, 2 * nT) as bigint[];
-
-  let quote: ChainInfo["quote"] = null;
-  let quoteError: string | null = null;
-  try {
-    const [tok, usd] = (await publicClient.readContract({ ...p, functionName: "quote", args: [BigInt(nextId)] })) as readonly [bigint, bigint];
-    quote = { id: nextId, usd: num(usd), tokens: num(tok), tokensWei: tok };
-  } catch (e) {
-    const msg = String((e as Error).message ?? e);
-    quoteError = msg.includes("EarlyBirdSoldOut") ? "Early bird sold out: building reopens when the 6 hours end." : msg.includes("CityLocked") ? "The city is complete." : msg.includes("NotStarted") ? "Building has not started yet." : "Price unavailable right now.";
-  }
-
-  let gasBalance = 0n;
-  let capWei = 0n;
-  let allowance = 0n;
-  if (me) {
-    [gasBalance, capWei, allowance] = await Promise.all([
-      publicClient.getBalance({ address: me }),
-      publicClient.readContract({ ...c, functionName: "balanceOf", args: [me] }),
-      publicClient.readContract({ ...c, functionName: "allowance", args: [me, a.nft] }),
-    ]);
-  }
-
+  const quoteP = (publicClient.readContract({ ...p, functionName: "quote", args: [BigInt(nextId)] }) as Promise<readonly [bigint, bigint]>).then(
+    ([tok, usd]) => ({ quote: { id: nextId, usd: num(usd), tokens: num(tok), tokensWei: tok } as ChainInfo["quote"], quoteError: null as string | null }),
+    (e) => {
+      const msg = String((e as Error).message ?? e);
+      return {
+        quote: null as ChainInfo["quote"],
+        quoteError: msg.includes("EarlyBirdSoldOut") ? "Early bird sold out: building reopens when the 6 hours end." : msg.includes("CityLocked") ? "The city is complete." : msg.includes("NotStarted") ? "Building has not started yet." : "Price unavailable right now.",
+      };
+    },
+  );
+  const meP = me
+    ? Promise.all([
+        publicClient.getBalance({ address: me }),
+        publicClient.readContract({ ...c, functionName: "balanceOf", args: [me] }) as Promise<bigint>,
+        publicClient.readContract({ ...c, functionName: "allowance", args: [me, a.nft] }) as Promise<bigint>,
+      ])
+    : Promise.resolve([0n, 0n, 0n] as [bigint, bigint, bigint]);
   // Buildings: static facts once, live facts every poll.
-  const missing = [];
+  const missing: number[] = [];
   for (let id = 1; id <= N; id++) if (!buildingCache.has(id)) missing.push(id);
-  const statics = await Promise.all(missing.map((id) => publicClient.readContract({ ...n, functionName: "buildingOf", args: [BigInt(id)] })));
-  missing.forEach((id, i) => {
-    const b = statics[i] as { district: number; style: number; earlyBird: boolean; plot: number; inviter: number; builtAt: bigint };
-    buildingCache.set(id, { district: b.district as DistrictId, style: b.style as 0 | 1 | 2, plot: Number(b.plot), inviter: Number(b.inviter), earlyBird: b.earlyBird, builtAt: Number(b.builtAt) });
-  });
+  const staticsP = Promise.all(missing.map((id) => publicClient.readContract({ ...n, functionName: "buildingOf", args: [BigInt(id)] })));
   const ids = Array.from({ length: N }, (_, i) => i + 1);
-  const live = await Promise.all(
+  const liveP = Promise.all(
     ids.map((id) =>
       Promise.all([
         publicClient.readContract({ ...n, functionName: "ownerOf", args: [BigInt(id)] }),
@@ -189,6 +178,20 @@ async function readCity(a: CityAddresses, me: Address | null) {
       ]),
     ),
   );
+  // Recent purchases from events (public nodes limit how far back logs can go).
+  const logsP = publicClient
+    .getContractEvents({ address: a.vault, abi: vaultAbi, eventName: "Bought", fromBlock: block.number > 9000n ? block.number - 9000n : 0n })
+    .catch(() => null);
+
+  const [[votes, newBuilds, incomeUsd, capUsd, isEB, oracleOwner, quality, ...rest], { quote, quoteError }, [gasBalance, capWei, allowance], statics, live, logs] =
+    await Promise.all([wave2, quoteP, meP, staticsP, liveP, logsP]);
+  const nT = a.tokens.length;
+  const tokenUsd = rest.slice(0, nT) as bigint[];
+  const holdings = rest.slice(nT, 2 * nT) as bigint[];
+  missing.forEach((id, i) => {
+    const b = statics[i] as { district: number; style: number; earlyBird: boolean; plot: number; inviter: number; builtAt: bigint };
+    buildingCache.set(id, { district: b.district as DistrictId, style: b.style as 0 | 1 | 2, plot: Number(b.plot), inviter: Number(b.inviter), earlyBird: b.earlyBird, builtAt: Number(b.builtAt) });
+  });
   const buildings: Building[] = ids.map((id, i) => {
     const st = buildingCache.get(id)!;
     const [owner, claimed, pending, pendingAll, voted, full] = live[i] as [Address, bigint, bigint, readonly bigint[], bigint, { invites: number }];
@@ -211,17 +214,10 @@ async function readCity(a: CityAddresses, me: Address | null) {
   const districtCount = Array.from({ length: a.districts }, () => 0);
   for (const b of buildings) districtCount[b.district]++;
 
-  // Recent purchases from events (public nodes limit how far back logs can go).
-  let purchases: Purchase[] = [];
-  try {
-    const logs = await publicClient.getContractEvents({ address: a.vault, abi: vaultAbi, eventName: "Bought", fromBlock: block.number > 9000n ? block.number - 9000n : 0n });
-    purchases = logs.reverse().slice(0, 30).map((l) => {
-      const args = l.args as { token: number; amountIn: bigint; tokensOut: bigint; usd: bigint };
-      return { at: Number(block.timestamp) - Number(block.number - (l.blockNumber ?? block.number)) * 2, token: args.token as TokenId, amount: num(args.amountIn), tokens: num(args.tokensOut), usd: num(args.usd) };
-    });
-  } catch {
-    /* logs unavailable */
-  }
+  const purchases: Purchase[] = (logs ?? []).reverse().slice(0, 30).map((l) => {
+    const args = l.args as { token: number; amountIn: bigint; tokensOut: bigint; usd: bigint };
+    return { at: Number(block.timestamp) - Number(block.number - (l.blockNumber ?? block.number)) * 2, token: args.token as TokenId, amount: num(args.amountIn), tokens: num(args.tokensOut), usd: num(args.usd) };
+  });
 
   const chain: ChainInfo = {
     ...a,
