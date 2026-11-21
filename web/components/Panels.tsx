@@ -107,6 +107,13 @@ export function BuildTab() {
           <div className="muted small">{TICKER}</div>
         </div>
       </div>
+      {testnet && city.me && (
+        <p className="muted small">
+          Your wallet ({city.me.slice(0, 6)}…{city.me.slice(-4)}) holds <b>{fmt(city.viceBalance)} {TICKER}</b>
+          {city.chain?.quote ? (city.chain.viceWei >= city.chain.quote.tokensWei ? " · enough for this hideout" : " · not enough for this hideout yet") : ""}.
+        </p>
+      )}
+      {testnet && !city.me && <p className="muted small">Connect your wallet to see your {TICKER} and build.</p>}
 
       <h3><span className="step">1</span> Choose a district</h3>
       <div className="district-grid">
