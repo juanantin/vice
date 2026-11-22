@@ -72,6 +72,7 @@ export interface ChainActions {
   build: (district: DistrictId, style: 0 | 1 | 2, inviter: number, maxTokensWei: bigint) => Promise<number | null>;
   claim: (ids: number[]) => Promise<void>;
   vote: (ids: number[], token: TokenId) => Promise<void>;
+  send: (id: number, to: string) => Promise<void>;
 }
 
 export interface CityState {
@@ -379,6 +380,15 @@ export function build(owner: string, district: DistrictId, style: 0 | 1 | 2, inv
   emit({ type: "built", building: b });
   if (inviterB) emit({ type: "invited", building: inviterB });
   return b;
+}
+
+/** Give a hideout to another wallet. Its pending rewards, height and this week's vote go with it. */
+export async function sendHideout(id: number, to: string) {
+  if (get().mode === "testnet") return chainActions?.send(id, to);
+  const buildings = [...get().buildings];
+  const b = buildings[id - 1];
+  if (b) buildings[id - 1] = { ...b, owner: to.toLowerCase() };
+  set({ buildings });
 }
 
 export async function claim(ids: number[]) {

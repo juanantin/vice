@@ -2194,3 +2194,8 @@ h3 {
 .buy-toast {
   animation-duration: 5s;
 }
+
+/* Send a hideout to another wallet (Hideout tab). */
+.send-box { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--line, #ffffff22); }
+.send-box .input { width: 100%; font-family: "JetBrains Mono", monospace; font-size: 13px; }
+.send-box p { margin: 0; }

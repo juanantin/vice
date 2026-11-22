@@ -459,6 +459,10 @@ registerChain({
   vote: async (ids, token) => {
     await send({ address: need().vault, abi: vaultAbi, functionName: "vote", args: [ids.map(BigInt), token] } as never);
   },
+  send: async (id, to) => {
+    const me = getCity().me as Address;
+    await send({ address: need().nft, abi: nftAbi, functionName: "safeTransferFrom", args: [me, to as Address, BigInt(id)] } as never);
+  },
 });
 
 export function describeError(e: unknown): string {

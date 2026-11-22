@@ -4,7 +4,8 @@ import { ink } from "../lib/theme";
 import { useEffect, useMemo, useState } from "react";
 import { DISTRICTS, DistrictId, EARLY_BIRD_UNITS, GAME, MAX_BUILDINGS, TICKER, TIERS, TOKENS, VOTE_CITIES, cityToken, levelForUsd, usdForNextLevel } from "../lib/config";
 import { formatCountdown } from "../lib/romeTime";
-import { approve, buildMine, claim, focus, getCity, quoteBuild, useCity, vote } from "../lib/store";
+import { approve, buildMine, claim, focus, getCity, quoteBuild, sendHideout, useCity, vote } from "../lib/store";
+import { isAddress } from "viem";
 import { describeError, testActions } from "../lib/chain";
 import { Sun } from "./Logo";
 
@@ -216,6 +217,8 @@ export function MyPalazzoTab() {
   const city = useCity();
   const mine = useMemo(() => city.buildings.filter((b) => b.owner === city.me), [city.buildings, city.me]);
   const [pending, run, error] = useTx();
+  const [sending, setSending] = useState<number | null>(null);
+  const [to, setTo] = useState("");
   const totalPending = mine.reduce((s, b) => s + b.pendingUsd, 0);
   const totalTokens = TOKENS.map((t) => mine.reduce((s, b) => s + (b.pendingTokens?.[t.id] ?? 0), 0));
   const unvoted = mine.filter((b) => b.votedWeek !== city.week).length;
@@ -294,7 +297,26 @@ export function MyPalazzoTab() {
                 <button className="btn small" disabled={b.pendingUsd <= 0 || !!pending} onClick={() => run(`c${b.id}`, () => claim([b.id]))}>
                   {pending === `c${b.id}` ? "…" : "Claim"}
                 </button>
+                <button className="btn small ghost" disabled={!!pending} onClick={() => setSending(sending === b.id ? null : b.id)}>
+                  Send
+                </button>
               </div>
+              {sending === b.id && (
+                <div className="send-box">
+                  <label className="muted small" htmlFor={`to${b.id}`}>Send #{b.id} to wallet address</label>
+                  <input id={`to${b.id}`} className="input" placeholder="0x…" value={to} onChange={(e) => setTo(e.target.value.trim())} spellCheck={false} autoComplete="off" />
+                  <p className="muted small">
+                    Its {usd(b.pendingUsd)} waiting, its height and this week&apos;s vote go with it. Double-check the address: a hideout sent to the wrong wallet can&apos;t be brought back.
+                  </p>
+                  <button
+                    className="btn primary small"
+                    disabled={!isAddress(to) || to.toLowerCase() === city.me || !!pending}
+                    onClick={() => run(`s${b.id}`, async () => { await sendHideout(b.id, to); setSending(null); setTo(""); })}
+                  >
+                    {pending === `s${b.id}` ? "Sending…" : isAddress(to) ? `Send #${b.id}` : "Enter an address"}
+                  </button>
+                </div>
+              )}
             </div>
           );
         })}
