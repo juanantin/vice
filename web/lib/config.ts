@@ -91,8 +91,8 @@ export const TIERS = [
 /** The real city, filled in after the launch (the launch page prints both addresses). While
  *  `vault` is null the site shows the preview with sample data. */
 export const LIVE: { vault: `0x${string}` | null; vice: `0x${string}` | null } = {
-  vault: null,
-  vice: null,
+  vault: "0x15ef34322f22594589126c107d67128aff19fcb7",
+  vice: "0x2868d6B29CD2c1F58787bd62388f3773c63AEEb4",
 };
 /** The $VTEST rehearsal city (Nov 2026), still running on Elysium. Open it with
  *  vicetoken.city/?city=rehearsal. The keeper tends it until LIVE.vault is set. */

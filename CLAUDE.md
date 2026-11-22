@@ -170,6 +170,9 @@ PixiJS 8 + d3-geo. Must run smoothly on phones. Deployed on Vercel from `main` (
    rehearsal: launch page clicked through end to end (incl. the 48h finish), a hideout built
    through the UI in live mode, keeper runs (collect + buy). Juan chose not to audit.
 7. Real launch: Juan follows `LAUNCH.md`. Never deploy or send funds for him.
+   LAUNCHED 22 Nov 2026: $VICE 0x2868d6B29CD2c1F58787bd62388f3773c63AEEb4 (2% swap fee, 100%
+   creator, trading opened 19:39 UTC), vault 0x15ef34322f22594589126c107d67128aff19fcb7, building
+   opened 21:10 UTC (early bird to 03:10 UTC 23 Nov). The 48h Finish on /launch is still due.
    Until then `LIVE` is null and `PRELAUNCH` is true: the home page is an empty, closed city
    ("Opening soon", no sample data; build/vote/claim refuse). The $VTEST rehearsal city
    (`REHEARSAL` in config) stays at /?city=rehearsal and the keeper tends it until `LIVE.vault`
