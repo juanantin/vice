@@ -170,6 +170,10 @@ PixiJS 8 + d3-geo. Must run smoothly on phones. Deployed on Vercel from `main` (
    rehearsal: launch page clicked through end to end (incl. the 48h finish), a hideout built
    through the UI in live mode, keeper runs (collect + buy). Juan chose not to audit.
 7. Real launch: Juan follows `LAUNCH.md`. Never deploy or send funds for him.
+   Until then `LIVE` is null and `PRELAUNCH` is true: the home page is an empty, closed city
+   ("Opening soon", no sample data; build/vote/claim refuse). The $VTEST rehearsal city
+   (`REHEARSAL` in config) stays at /?city=rehearsal and the keeper tends it until `LIVE.vault`
+   is set. The keeper is started every 10 min by cron-job.org (GitHub's own schedule is unreliable).
 
 ## Toolchain notes (cloud sessions)
 - Foundry from npm (`@foundry-rs/forge`) with a solc-js shim (`forge test --use <shim>`) when

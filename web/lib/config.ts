@@ -101,6 +101,8 @@ export const REHEARSAL = {
   vice: "0x1f7Efa7f66EEcf76f5f1d102fc8BFe0dbb3C3374" as `0x${string}`,
 };
 export const VICE_ADDRESS = LIVE.vice;
+/** Before launch day (LIVE.vault not set) the home page shows an empty, closed city: no sample data. */
+export const PRELAUNCH = !LIVE.vault;
 /** The city tax is paid in the asset $VICE is paired with on Volta. */
 export const INCOME = { symbol: "VOLTA", tokenAddress: "0x0f79931689Af199e7CF868ed1107bBA2C83c68f7" as `0x${string}` };
 export const GAS_SYMBOL = "HYPE";

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useAccount, useDisconnect } from "wagmi";
 import WalletSheet, { useConnectWallet } from "./WalletSheet";
 import { useCity } from "../lib/store";
-import { GAME, TICKER } from "../lib/config";
+import { GAME, PRELAUNCH, TICKER } from "../lib/config";
 
 export const short = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;
 
@@ -53,19 +53,26 @@ export default function WalletButton() {
         >
           <div className="lab-panel preview-notice">
             <div className="sheet-head">
-              <h2>Preview mode</h2>
+              <h2>{PRELAUNCH ? "Opening soon" : "Preview mode"}</h2>
               <button className="close" onClick={() => setNotice(false)} aria-label="Close">×</button>
             </div>
             <div className="sheet-body">
-              <p>
-                {GAME.name} has not launched yet. You are looking at a <b>preview</b>: the hideouts, the purchases and
-                the rewards on the map are sample data.
-              </p>
+              {PRELAUNCH ? (
+                <p>
+                  {GAME.name} has not launched yet. The city is empty until launch day: then 3,000 hideouts open and the
+                  first players move in. Follow <a href={GAME.x} target="_blank" rel="noreferrer">{GAME.xHandle}</a> for the date.
+                </p>
+              ) : (
+                <p>
+                  {GAME.name} has not launched yet. You are looking at a <b>preview</b>: the hideouts, the purchases and
+                  the rewards on the map are sample data.
+                </p>
+              )}
               <p>
                 Building, voting and claiming open when <b>{TICKER}</b> launches on <b>Volta</b>, on the Elysium
                 chain. Until then there is nothing to connect a wallet to.
               </p>
-              <button className="btn primary wide" onClick={() => setNotice(false)}>Explore the preview</button>
+              <button className="btn primary wide" onClick={() => setNotice(false)}>{PRELAUNCH ? "Explore the map" : "Explore the preview"}</button>
               <button className="link-btn" onClick={doConnect}>Connect anyway</button>
             </div>
           </div>

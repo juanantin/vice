@@ -16,7 +16,7 @@ import NewsTicker from "./NewsTicker";
 import Guide from "./Guide";
 import WhitePaper from "./WhitePaper";
 import { BuildTab, MyPalazzoTab, RankingsTab, SindacoTab, TownHallTab, TreasuryTab } from "./Panels";
-import { GAME, LIVE, MAX_BUILDINGS, TICKER, TOKENS, VOTE_CITIES } from "../lib/config";
+import { GAME, LIVE, MAX_BUILDINGS, PRELAUNCH, TICKER, TOKENS, VOTE_CITIES } from "../lib/config";
 import { getCity, onCityEvent, setLive, setMode, settleIfDue, tick, ui, useCity } from "../lib/store";
 
 // The tabs are apps on the crew's phone.
@@ -151,8 +151,8 @@ function Game() {
         <button className={`stat live ${city.mode === "testnet" || city.live ? "on" : ""}`} onClick={onModeChipClick}>
           {city.mode === "preview" ? (
             <>
-              <span>Sample data</span>
-              <b>{city.live ? "● Live" : "Paused"}</b>
+              <span>{PRELAUNCH ? "Miami" : "Sample data"}</span>
+              <b>{PRELAUNCH ? "Opening soon" : city.live ? "● Live" : "Paused"}</b>
             </>
           ) : (
             <>

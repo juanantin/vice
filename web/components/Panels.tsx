@@ -2,7 +2,7 @@
 
 import { ink } from "../lib/theme";
 import { useEffect, useMemo, useState } from "react";
-import { DISTRICTS, DistrictId, EARLY_BIRD_UNITS, GAME, MAX_BUILDINGS, TICKER, TIERS, TOKENS, VOTE_CITIES, cityToken, levelForUsd, usdForNextLevel } from "../lib/config";
+import { DISTRICTS, DistrictId, EARLY_BIRD_UNITS, EARLY_BIRD_USD, GAME, PRELAUNCH, MAX_BUILDINGS, TICKER, TIERS, TOKENS, VOTE_CITIES, cityToken, levelForUsd, usdForNextLevel } from "../lib/config";
 import { formatCountdown } from "../lib/romeTime";
 import { approve, buildMine, claim, focus, getCity, quoteBuild, sendHideout, useCity, vote } from "../lib/store";
 import { isAddress } from "viem";
@@ -173,7 +173,7 @@ export function BuildTab() {
           <TxError error={error} />
         </>
       )}
-      {!testnet && <p className="preview-note">Preview mode: no wallet, nothing is sent on-chain.</p>}
+      {!testnet && <p className="preview-note">{PRELAUNCH ? `Opens at launch: the first ${EARLY_BIRD_UNITS} hideouts cost $${EARLY_BIRD_USD} for the first 6 hours.` : "Preview mode: no wallet, nothing is sent on-chain."}</p>}
     </div>
   );
 }

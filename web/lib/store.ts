@@ -3,7 +3,7 @@
 // When the contracts are live, this file is replaced by reads from Elysium via wagmi/viem.
 
 import { useSyncExternalStore } from "react";
-import { DISTRICTS, DistrictId, MAX_BUILDINGS, TOKENS, TokenId, cityToken, levelForUsd, usdForBuilding } from "./config";
+import { DISTRICTS, DistrictId, MAX_BUILDINGS, PRELAUNCH, TOKENS, TokenId, cityToken, levelForUsd, usdForBuilding } from "./config";
 import { nextDeadline } from "./romeTime";
 
 export const YOU = "you";
@@ -130,7 +130,42 @@ function rng(seed: number) {
 
 const NAMES = ["0x7a3…91c", "0x1fe…b20", "0xc04…7d1", "0x9bb…e03", "0x44d…a8f", "0x02c…5e7", "0xd1a…0c4"];
 
+/** Before launch: an empty city that is not open yet (no sample hideouts, buys or totals). */
+function makeClosed(): CityState {
+  const now = Math.floor(Date.now() / 1000);
+  return {
+    mode: "preview",
+    me: YOU,
+    chain: null,
+    buildings: [],
+    districtCount: DISTRICTS.map(() => 0) as CityState["districtCount"],
+    week: 0,
+    weekEnd: nextDeadline(now),
+    currentToken: 0,
+    votes: TOKENS.map(() => 0) as CityState["votes"],
+    newBuilds: DISTRICTS.map(() => 0) as CityState["newBuilds"],
+    totalTax: 0,
+    totalPurchases: 0,
+    totalBoughtUsd: 0,
+    purchases: [],
+    residentsFunds: 0,
+    streetFunds: 0,
+    opsFunds: 0,
+    opsPaid: 0,
+    holdings: TOKENS.map(() => 0) as CityState["holdings"],
+    incomeUsd: 0,
+    viceUsd: 0,
+    tokenUsd: TOKENS.map(() => 0) as CityState["tokenUsd"],
+    approved: false,
+    viceBalance: 0,
+    live: false,
+  };
+}
+
+const NOT_OPEN = "VICE isn't open yet: building, voting and claiming start at launch. Follow @playcityvice for the date.";
+
 function makeInitial(): CityState {
+  if (PRELAUNCH) return makeClosed();
   const r = rng(20261022);
   const now = Math.floor(Date.now() / 1000);
   const weekEnd = nextDeadline(now);
@@ -322,12 +357,13 @@ export function quoteBuild(): { id: number; usd: number; tokens: number } {
     return q ? { id: q.id, usd: q.usd, tokens: q.tokens } : { id: s.buildings.length + 1, usd: 0, tokens: 0 };
   }
   const id = s.buildings.length + 1;
-  const usd = usdForBuilding(id, false);
-  return { id, usd, tokens: Math.ceil(usd / s.viceUsd) };
+  const usd = usdForBuilding(id, PRELAUNCH); // before launch: the early-bird price #1 will open at
+  return { id, usd, tokens: s.viceUsd > 0 ? Math.ceil(usd / s.viceUsd) : 0 };
 }
 
 export async function approve() {
   if (get().mode === "testnet") return chainActions?.approve();
+  if (PRELAUNCH) throw new Error(NOT_OPEN);
   set({ approved: true });
 }
 
@@ -335,6 +371,7 @@ export async function approve() {
 export async function buildMine(district: DistrictId, style: 0 | 1 | 2, inviter: number, maxTokensWei: bigint): Promise<number | null> {
   const s = get();
   if (s.mode === "testnet") return chainActions ? chainActions.build(district, style, inviter, maxTokensWei) : null;
+  if (PRELAUNCH) throw new Error(NOT_OPEN);
   return build(s.me, district, style, inviter)?.id ?? null;
 }
 
@@ -393,6 +430,7 @@ export async function sendHideout(id: number, to: string) {
 
 export async function claim(ids: number[]) {
   if (get().mode === "testnet") return chainActions?.claim(ids);
+  if (PRELAUNCH) throw new Error(NOT_OPEN);
   const s = get();
   const buildings = [...s.buildings];
   for (const id of ids) {
@@ -408,6 +446,7 @@ export async function claim(ids: number[]) {
 
 export async function vote(ids: number[], token: TokenId) {
   if (get().mode === "testnet") return chainActions?.vote(ids, token);
+  if (PRELAUNCH) throw new Error(NOT_OPEN);
   const s = get();
   const buildings = [...s.buildings];
   const votes = [...s.votes] as CityState["votes"];
@@ -455,7 +494,7 @@ export function settleIfDue(now: number) {
 /** Preview life: other residents keep building, buys happen, rewards accrue, some level up. */
 export function tick() {
   const s = get();
-  if (s.mode !== "preview" || !s.live) return;
+  if (s.mode !== "preview" || !s.live || PRELAUNCH) return;
   const r = Math.random();
   if (r < 0.45 && s.buildings.length < MAX_BUILDINGS) {
     const d = Math.floor(Math.random() * DISTRICTS.length) as DistrictId;

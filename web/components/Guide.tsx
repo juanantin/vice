@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useAccount } from "wagmi";
 import { useConnectWallet } from "./WalletSheet";
-import { DISTRICTS, GAME, LIVE, TICKER, VOLTA_URL, VOTE_CITIES } from "../lib/config";
+import { DISTRICTS, GAME, LIVE, PRELAUNCH, TICKER, VOLTA_URL, VOTE_CITIES } from "../lib/config";
 import { useCity } from "../lib/store";
 
 export type GuideTab = "feed" | "build" | "mine" | "hall" | "rank" | "treasury" | "paper" | "sindaco";
@@ -32,7 +32,15 @@ export default function Guide({ onTab }: { onTab: (t: GuideTab) => void }) {
   });
 
   const step = useMemo<Step | null>(() => {
-    if (city.mode !== "testnet") return null; // the preview explains itself
+    if (city.mode !== "testnet") {
+      if (!PRELAUNCH) return null; // the preview explains itself
+      return {
+        key: "soon",
+        title: "Opening soon",
+        text: `${TICKER} launches on Volta soon. Then 3,000 hideouts open across Brickell, Downtown, Wynwood and Miami Beach, and every trade pays the residents. Follow ${GAME.xHandle} for the date and the contract address.`,
+        action: { label: "Follow on X", href: GAME.x },
+      };
+    }
     if (!isConnected || !address) {
       return {
         key: "connect",

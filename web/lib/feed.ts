@@ -2,7 +2,7 @@
 // up, an invite) becomes a post, like a phone feed in the city. Purely cosmetic.
 
 import { useSyncExternalStore } from "react";
-import { DISTRICTS, GAME, LIVE, TICKER, TOKENS, VOTE_CITIES, cityToken } from "./config";
+import { DISTRICTS, GAME, LIVE, PRELAUNCH, TICKER, TOKENS, VOTE_CITIES, cityToken } from "./config";
 
 const VOTE_NAMES = () => VOTE_CITIES().map((d) => d.city).join(" and ");
 import { getCity, onCityEvent, type CityEvent } from "./store";
@@ -92,6 +92,8 @@ export function startFeed() {
   const realCity = !!LIVE.vault || (typeof window !== "undefined" && !!new URLSearchParams(window.location.search).get("city"));
   const seed: Omit<Post, "id" | "at">[] = realCity
     ? [{ handle: NEWS, city: null, kind: "news", text: "Miami is open. Pick a district, open a hideout, take the turf." }]
+    : PRELAUNCH
+    ? [{ handle: NEWS, city: null, kind: "news", text: `Miami opens soon. ${TICKER} launches on Volta: 3,000 hideouts, four crews, one city. Follow ${GAME.xHandle} for the date.` }]
     : [
     { handle: NEWS, city: null, kind: "news", text: "Turf war update: Brickell leads the week on new recruits. Wynwood two behind." },
     { handle: DISTRICTS[3].handle, city: 3, kind: "score", token: 2, text: "Just pulled a 114,210 VOID score on Ocean Drive. Split 224 ways." },
