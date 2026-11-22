@@ -16,6 +16,12 @@ amounts first if you can.
    secret*: name `KEEPER_PRIVATE_KEY`, value = that wallet's private key. That secret is the only
    place it goes. The keeper wallet has no special rights; it only pays gas.
 4. **Website**: import `juanantin/vice` in Vercel (root directory = repo root), add your domain.
+   (Done: vicetoken.city. Until launch the home page shows the preview with sample data; the
+   $VTEST rehearsal city stays open at vicetoken.city/?city=rehearsal.)
+5. **Rehearsal leftovers**: on /launch, run the rehearsal's *Finish* if you want it (after the
+   48h delay), then press **Reset** at the bottom so the page starts the real launch from step 1.
+   The keeper key is currently your deployer wallet's: replace the `KEEPER_PRIVATE_KEY` secret with
+   the new keeper wallet's key (step 3).
 
 ## Launch day
 
@@ -42,7 +48,8 @@ amounts first if you can.
    Claude (or paste it into `web/lib/config.ts`) and push to `main`; Vercel redeploys and the
    site switches from the preview to the real city.
 4. **Start the keeper**: GitHub → Settings → Secrets and variables → Actions → *Variables* →
-   `VICE_VAULT` = the vault address. Then Actions → *keeper* → *Run workflow* once and read the
+   `VICE_VAULT` = the new vault address (replace the rehearsal one if it is there). The
+   cron-job.org timer keeps starting it every 10 minutes; nothing to change there. Then Actions → *keeper* → *Run workflow* once and read the
    log. After that it runs every 15 minutes by itself.
 
 ## 48 hours later
@@ -54,8 +61,8 @@ setting change (oracle, swap route, buy sizes, prices) is public for 48 hours be
 
 | What | Who | How often |
 |---|---|---|
-| Collect creator fees from Volta's escrow | keeper (anyone can) | every 15 min if any |
-| Update the HYPE/USD reference | keeper (anyone can) | every 15 min |
+| Collect creator fees from Volta's escrow | keeper (anyone can) | every 10 min if any |
+| Update the HYPE/USD reference | keeper (anyone can) | every 10 min |
 | Buy SENT / VOID / keep VOLTA | keeper (anyone can) | when ≥ the smallest buy is waiting, 10 min apart |
 | Close the week (Sunday 20:00 Rome = 2 PM Miami) | keeper or the next player action | weekly |
 | Pay the ops share | keeper (anyone can) | once it's worth $25 |

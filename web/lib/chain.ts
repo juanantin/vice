@@ -5,7 +5,7 @@ import { formatEther, formatUnits, parseEventLogs, type Address } from "viem";
 import { getWalletClient, switchChain } from "@wagmi/core";
 import { nftAbi, oracleAbi, pricingAbi, testAdapterAbi, testFeeEscrowAbi, testOracleAbi, testTokenAbi, vaultAbi } from "./abis";
 import { CHAIN, publicClient, wagmiConfig } from "./wagmi";
-import { DISTRICTS, LIVE, TOKENS, cityToken, levelForUsd, type DistrictId, type TokenId } from "./config";
+import { DISTRICTS, LIVE, REHEARSAL, TOKENS, cityToken, levelForUsd, type DistrictId, type TokenId } from "./config";
 import { announce, getCity, registerChain, setChainState, type Building, type ChainInfo, type CityEvent, type Purchase } from "./store";
 
 const MAX = 2n ** 256n - 1n;
@@ -30,12 +30,15 @@ const KEY = "vice.testCity";
 
 /** True when the loaded city is the real, launched one. */
 export function isLiveCity(vault: string | null | undefined) {
-  return !!vault && !!LIVE.vault && vault.toLowerCase() === LIVE.vault.toLowerCase();
+  if (!vault) return false;
+  const v = vault.toLowerCase();
+  return (!!LIVE.vault && v === LIVE.vault.toLowerCase()) || v === REHEARSAL.vault.toLowerCase();
 }
 
 export function savedCity(): Address | null {
   try {
     const q = new URLSearchParams(window.location.search).get("city");
+    if (q === "rehearsal") return REHEARSAL.vault;
     if (q && /^0x[0-9a-fA-F]{40}$/.test(q)) return q as Address;
     // After launch the real city is the default (a test city needs an explicit ?city= link).
     if (LIVE.vault) return LIVE.vault;

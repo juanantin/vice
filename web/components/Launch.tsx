@@ -5,7 +5,7 @@ import { isAddress, type Address } from "viem";
 import { useAccount, useConnect, useDisconnect } from "wagmi";
 import Providers from "./Providers";
 import { describeError } from "../lib/chain";
-import { GAME, TICKER } from "../lib/config";
+import { GAME, REHEARSAL, TICKER } from "../lib/config";
 import { EXPLORER } from "../lib/wagmi";
 import { STEPS, TIMELOCK_DELAY, checkVice, loadLaunch, saveLaunch, verifyLaunch, type LaunchState, type TokenCheck, type Verify } from "../lib/launch";
 
@@ -120,6 +120,17 @@ function Wizard() {
           </button>
         )}
       </header>
+
+      {s?.inputs.vice && s.inputs.vice.toLowerCase() === REHEARSAL.vice.toLowerCase() && (
+        <section className="launch-card">
+          <h2>This browser still holds the $VTEST rehearsal</h2>
+          <p>
+            Its last step (Finish, after the 48-hour delay) can still be run below. When you&apos;re done with it, press <b>Reset</b> at the
+            bottom of this page to start the real {TICKER} launch from step 1. The rehearsal city keeps running at{" "}
+            <a href="/?city=rehearsal">vicetoken.city/?city=rehearsal</a>.
+          </p>
+        </section>
+      )}
 
       <section className="launch-card">
         <h2>Before you start</h2>

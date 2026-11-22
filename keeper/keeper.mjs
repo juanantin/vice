@@ -55,8 +55,11 @@ function vaultAddress() {
   if (process.env.VICE_VAULT) return process.env.VICE_VAULT;
   try {
     const cfg = readFileSync(new URL("../web/lib/config.ts", import.meta.url), "utf8");
-    const m = cfg.match(/vault:\s*"(0x[0-9a-fA-F]{40})"/);
-    if (m) return m[1];
+    // The real city (LIVE) first; until it is set, the $VTEST rehearsal city (REHEARSAL).
+    for (const name of ["LIVE", "REHEARSAL"]) {
+      const m = cfg.match(new RegExp(`export const ${name}\\b[\\s\\S]*?vault:\\s*"(0x[0-9a-fA-F]{40})"`));
+      if (m && !/vault:\s*null/.test(cfg.slice(cfg.indexOf(`export const ${name}`), m.index + m[0].length))) return m[1];
+    }
   } catch {
     /* no config */
   }

@@ -89,7 +89,8 @@ export function startFeed() {
   started = true;
   const now = Date.now();
   // The real city only shows real events; the sample posts are for the preview.
-  const seed: Omit<Post, "id" | "at">[] = LIVE.vault
+  const realCity = !!LIVE.vault || (typeof window !== "undefined" && !!new URLSearchParams(window.location.search).get("city"));
+  const seed: Omit<Post, "id" | "at">[] = realCity
     ? [{ handle: NEWS, city: null, kind: "news", text: "Miami is open. Pick a district, open a hideout, take the turf." }]
     : [
     { handle: NEWS, city: null, kind: "news", text: "Turf war update: Brickell leads the week on new recruits. Wynwood two behind." },

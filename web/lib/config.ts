@@ -6,8 +6,8 @@
  *  (The NFT's name "VICE" and symbol HIDEOUT are strings in src/ViceNFT.sol.) */
 export const GAME = {
   name: "VICE",
-  /** Shown as $TICKER. "VTEST" while the rehearsal launch is checked; "VICE" for the real one. */
-  ticker: "VTEST",
+  /** Shown as $TICKER. */
+  ticker: "VICE",
   tagline: "Miami · on Volta",
   building: "hideout",
   buildings: "hideouts",
@@ -88,8 +88,14 @@ export const TIERS = [
 /** The real city, filled in after the launch (the launch page prints both addresses). While
  *  `vault` is null the site shows the preview with sample data. */
 export const LIVE: { vault: `0x${string}` | null; vice: `0x${string}` | null } = {
-  vault: "0x5840306E5A03dfFc8c247AEC70484d7754B381f8",
-  vice: "0x1f7Efa7f66EEcf76f5f1d102fc8BFe0dbb3C3374",
+  vault: null,
+  vice: null,
+};
+/** The $VTEST rehearsal city (Nov 2026), still running on Elysium. Open it with
+ *  vicetoken.city/?city=rehearsal. The keeper tends it until LIVE.vault is set. */
+export const REHEARSAL = {
+  vault: "0x5840306E5A03dfFc8c247AEC70484d7754B381f8" as `0x${string}`,
+  vice: "0x1f7Efa7f66EEcf76f5f1d102fc8BFe0dbb3C3374" as `0x${string}`,
 };
 export const VICE_ADDRESS = LIVE.vice;
 /** The city tax is paid in the asset $VICE is paired with on Volta. */
