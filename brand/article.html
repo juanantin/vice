@@ -1,0 +1,221 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@500;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root { --navy: #0b1634; --violet: #2a1250; --pink: #ff4f8b; --cyan: #3ff5ff; --cream: #fff0f6;
+          --gold: #f5c451; --orange: #ff8a4c; --lime: #b8f04a; --sky: #3fd9f5; --purple: #7b2ff7; }
+  body { margin: 0; background: #111; display: flex; flex-direction: column; gap: 40px; padding: 40px; }
+  .img { position: relative; overflow: hidden; width: 1600px; height: 900px; color: var(--cream); font-family: Manrope, sans-serif;
+         background: radial-gradient(circle at 50% 0%, #3a1670 0%, var(--violet) 35%, var(--navy) 80%); }
+  .cover { width: 1500px; height: 600px; }
+  .map { position: absolute; inset: 0; background: url(map-clean.png) no-repeat; }
+  .shade { position: absolute; inset: 0; }
+  .word { font-family: Anton, Impact, sans-serif; font-style: italic; color: var(--cream); line-height: 1;
+          text-shadow: 0 0 18px var(--pink), 0 0 42px #ff4f8bcc, 6px 6px 0 var(--purple); }
+  .kick { font: 700 22px "JetBrains Mono", monospace; letter-spacing: .32em; color: var(--cyan); text-transform: uppercase; }
+  .h { font-family: Anton, sans-serif; font-size: 84px; line-height: 1; letter-spacing: .01em; }
+  .p { font-size: 28px; line-height: 1.45; color: #fff0f6d9; font-weight: 500; }
+  .pad { position: absolute; left: 90px; top: 80px; right: 90px; }
+  .chip { display: inline-block; padding: 5px 14px; border-radius: 999px; font: 700 18px "JetBrains Mono", monospace; letter-spacing: .12em; }
+  .card { border-radius: 22px; background: #0b1634d9; border: 2px solid; padding: 22px 28px; box-shadow: 0 0 40px #0008; }
+  .foot { position: absolute; left: 90px; bottom: 50px; font: 700 20px "JetBrains Mono", monospace; letter-spacing: .2em; color: #fff0f699; }
+  .foot b { color: var(--pink); }
+  .credit { position: absolute; right: 24px; bottom: 16px; font: 500 14px "JetBrains Mono", monospace; color: #fff0f680; }
+  .sun { position: absolute; border-radius: 50%; background: linear-gradient(180deg, #ffe066 0%, #ff8a4c 52%, #ff4f8b 100%); box-shadow: 0 0 80px 14px #ff4f8b55; }
+  .sun i { position: absolute; left: 0; right: 0; background: var(--navy); }
+  /* districts */
+  .dist { position: absolute; transform: translate(-50%, -100%); text-align: center; border-radius: 18px; padding: 14px 24px 16px; background: #0b1634e6; border: 3px solid; box-shadow: 0 0 30px currentColor; }
+  .dist .n { font-family: Anton, sans-serif; font-size: 44px; line-height: 1; color: var(--cream); letter-spacing: .02em; }
+  .dist .c { font: 800 17px Manrope, sans-serif; letter-spacing: .1em; text-transform: uppercase; margin: 4px 0 10px; }
+  .dist:after { content: ""; position: absolute; left: 50%; bottom: -16px; width: 3px; height: 16px; background: currentColor; }
+  /* flow */
+  .row { display: flex; align-items: center; gap: 26px; }
+  .box { border-radius: 22px; padding: 26px 30px; background: #0b1634cc; border: 2px solid; text-align: center; }
+  .box .big { font-family: Anton, sans-serif; font-size: 54px; line-height: 1; }
+  .box .s { font: 700 17px "JetBrains Mono", monospace; letter-spacing: .14em; text-transform: uppercase; margin-top: 8px; color: #fff0f6bb; }
+  .arrow { font: 700 54px Manrope; color: var(--pink); text-shadow: 0 0 16px var(--pink); }
+  .bar { height: 26px; border-radius: 13px; }
+  /* ladder */
+  .step { position: absolute; bottom: 150px; width: 210px; border-radius: 18px 18px 0 0; border: 2px solid; border-bottom: none; display: flex; flex-direction: column; justify-content: flex-start; align-items: center; padding-top: 22px; background: linear-gradient(180deg, #ffffff14, #ffffff03); }
+  .step .big { font-family: Anton, sans-serif; font-size: 60px; line-height: 1; }
+  .step .s { font: 700 17px "JetBrains Mono", monospace; letter-spacing: .1em; margin-top: 8px; color: #fff0f6cc; }
+  .ground { position: absolute; left: 90px; right: 90px; bottom: 148px; height: 4px; background: var(--cyan); box-shadow: 0 0 20px var(--cyan); }
+  .check { display: flex; gap: 22px; align-items: flex-start; margin-bottom: 26px; }
+  .check .t { font: 800 34px Manrope; line-height: 1.15; }
+  .check .d { font: 500 24px Manrope; color: #fff0f6bb; margin-top: 4px; }
+  .tick { flex: none; width: 50px; height: 50px; border-radius: 50%; display: grid; place-items: center; font: 800 28px Manrope; color: var(--navy); background: var(--cyan); box-shadow: 0 0 20px #3ff5ff99; }
+</style>
+</head>
+<body>
+
+<!-- 1. Cover (5:2) -->
+<div class="img cover" id="cover">
+  <div class="map" style="background-size: 1500px auto; background-position: 0 -260px;"></div>
+  <div class="shade" style="background: linear-gradient(90deg, #0b1634f7 0%, #0b1634e6 38%, #0b163466 66%, #0b163411 100%);"></div>
+  <div class="shade" style="background: linear-gradient(180deg, #7b2ff733, transparent 45%, #0b163499);"></div>
+  <div class="sun" style="left:86px; top:96px; width:96px; height:96px;"><i style="top:60px;height:6px"></i><i style="top:74px;height:8px"></i></div>
+  <div class="word" style="position:absolute; left:206px; top:80px; font-size:150px;">VICE</div>
+  <div class="kick" style="position:absolute; left:92px; top:270px;">Miami · on Volta · Elysium</div>
+  <div style="position:absolute; left:90px; top:318px; font: 800 52px Manrope; line-height:1.1; width:760px;">Every trade pays<br>the <span style="color:var(--pink); text-shadow:0 0 18px #ff4f8b88">residents.</span></div>
+  <div style="position:absolute; left:92px; top:470px;">
+    <span class="chip" style="background:#f5c45122;color:var(--gold);border:1px solid var(--gold)">BRICKELL</span>
+    <span class="chip" style="background:#ff8a4c22;color:var(--orange);border:1px solid var(--orange)">DOWNTOWN</span>
+    <span class="chip" style="background:#b8f04a22;color:var(--lime);border:1px solid var(--lime)">WYNWOOD</span>
+    <span class="chip" style="background:#3fd9f522;color:var(--sky);border:1px solid var(--sky)">MIAMI BEACH</span>
+  </div>
+  <div class="credit">Map © OpenStreetMap contributors · Overture Maps</div>
+</div>
+
+<!-- 2. The city: four districts on the real map. map-clean.png is 3000x1800; drawn at 1600 wide (x0.5333). -->
+<div class="img" id="districts">
+  <div class="map" style="background-size: 1600px auto; background-position: 0 -40px;"></div>
+  <div class="shade" style="background: linear-gradient(180deg, #0b1634f0 0%, #0b163499 22%, #0b163422 45%, #0b163433 80%, #0b1634cc 100%);"></div>
+  <div class="pad" style="top:46px;">
+    <div class="kick">The city</div>
+    <div class="h" style="font-size:66px; margin-top:8px;">Four districts. 3,000 hideouts.</div>
+  </div>
+  <div class="dist" style="left:470px; top:300px; color:var(--lime); border-color:var(--lime);"><div class="n">WYNWOOD</div><div class="c" style="color:var(--lime)">Los Muralistas</div><span class="chip" style="background:#b8f04a22;border:1px solid var(--lime)">EARNS · THE VOTE</span></div>
+  <div class="dist" style="left:800px; top:455px; color:var(--orange); border-color:var(--orange);"><div class="n">DOWNTOWN</div><div class="c" style="color:var(--orange)">Bayfront Royals</div><span class="chip" style="background:#ff8a4c22;border:1px solid var(--orange)">EARNS · VOLTA</span></div>
+  <div class="dist" style="left:330px; top:640px; color:var(--gold); border-color:var(--gold);"><div class="n">BRICKELL</div><div class="c" style="color:var(--gold)">Los Banqueros</div><span class="chip" style="background:#f5c45122;border:1px solid var(--gold)">EARNS · SENT</span></div>
+  <div class="dist" style="left:1208px; top:430px; color:var(--sky); border-color:var(--sky);"><div class="n">MIAMI BEACH</div><div class="c" style="color:var(--sky)">Los Flamingos</div><span class="chip" style="background:#3fd9f522;border:1px solid var(--sky)">EARNS · VOID</span></div>
+  <div class="foot" style="bottom:40px;"><b>VICE</b> · vicetoken.city</div>
+  <div class="credit">Map © OpenStreetMap contributors · Overture Maps</div>
+</div>
+
+<!-- 3. Where the money goes -->
+<div class="img" id="flow">
+  <div class="map" style="background-size: 1600px auto; background-position: 0 -300px; opacity:.16"></div>
+  <div class="pad">
+    <div class="kick">How it works</div>
+    <div class="h" style="margin-top:8px;">Every trade feeds the city.</div>
+  </div>
+  <div class="row" style="position:absolute; left:90px; top:300px;">
+    <div class="box" style="border-color:var(--pink); width:250px;"><div class="big">TRADE</div><div class="s">buy or sell $VICE</div></div>
+    <div class="arrow">→</div>
+    <div class="box" style="border-color:var(--orange); width:250px;"><div class="big">TAX</div><div class="s">the city's fee share</div></div>
+    <div class="arrow">→</div>
+    <div class="box" style="border-color:var(--cyan); width:330px;"><div class="big">THE VAULT</div><div class="s">no withdraw function</div></div>
+  </div>
+  <div style="position:absolute; left:90px; right:90px; top:540px;">
+    <div class="bar" style="display:flex; overflow:hidden; height:34px; border-radius:17px;">
+      <div style="width:70%; background:linear-gradient(90deg,#ff4f8b,#ff8a4c)"></div>
+      <div style="width:15%; background:var(--cyan)"></div>
+      <div style="width:15%; background:#8a7bb8"></div>
+    </div>
+    <div style="display:flex; margin-top:22px;">
+      <div style="width:70%;"><div style="font:400 64px Anton; color:var(--pink)">70%</div><div class="p" style="font-size:25px;">buys each district's token for its hideouts,<br>split equally, every order</div></div>
+      <div style="width:15%;"><div style="font:400 64px Anton; color:var(--cyan)">15%</div><div class="p" style="font-size:22px;">weekly street pool<br>for the turf winner</div></div>
+      <div style="width:15%;"><div style="font:400 64px Anton; color:#b3a6e0">15%</div><div class="p" style="font-size:22px;">runs the city<br>(operations)</div></div>
+    </div>
+  </div>
+  <div class="foot"><b>VICE</b> · vicetoken.city</div>
+</div>
+
+<!-- 4. Open a hideout: price ladder + burn -->
+<div class="img" id="hideout">
+  <div class="pad">
+    <div class="kick">Open a hideout</div>
+    <div class="h" style="margin-top:8px;">Pay in $VICE. It burns forever.</div>
+    <div class="p" style="margin-top:16px;">The price is set in dollars and climbs as the city fills up.</div>
+  </div>
+  <div class="ground"></div>
+  <div class="step" style="left:110px;  height:200px; border-color:var(--pink);"><div class="big" style="color:var(--pink)">$40</div><div class="s">EARLY BIRD</div><div class="s" style="margin-top:2px">first 300 · 6h</div></div>
+  <div class="step" style="left:380px;  height:260px; border-color:var(--gold);"><div class="big" style="color:var(--gold)">$52</div><div class="s">UP TO #800</div></div>
+  <div class="step" style="left:650px;  height:320px; border-color:var(--orange);"><div class="big" style="color:var(--orange)">$68</div><div class="s">#801 – 1,500</div></div>
+  <div class="step" style="left:920px;  height:380px; border-color:var(--lime);"><div class="big" style="color:var(--lime)">$88</div><div class="s">#1,501 – 2,300</div></div>
+  <div class="step" style="left:1190px; height:440px; border-color:var(--sky);"><div class="big" style="color:var(--sky)">$120</div><div class="s">#2,301 – 3,000</div></div>
+  <div style="position:absolute; left:90px; bottom:70px; font:700 22px 'JetBrains Mono'; letter-spacing:.14em; color:#fff0f6bb;">🔥 EVERY HIDEOUT BURNS $VICE · 3,000 MAX, NEVER MORE</div>
+</div>
+
+<!-- 5. Collect and grow -->
+<div class="img" id="grow">
+  <div class="pad">
+    <div class="kick">Collect and grow</div>
+    <div class="h" style="margin-top:8px;">Claim it. Watch it rise.</div>
+    <div class="p" style="margin-top:16px; width:620px;">Your hideout earns from every buy the city makes. Claim anytime. The more you've claimed, the taller it stands. No cap.</div>
+  </div>
+  <svg width="1600" height="900" style="position:absolute;left:0;top:0">
+    <defs><linearGradient id="tw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff4f8b"/><stop offset="1" stop-color="#7b2ff7"/></linearGradient></defs>
+    <line x1="760" y1="760" x2="1520" y2="760" stroke="#3ff5ff" stroke-width="4" style="filter:drop-shadow(0 0 8px #3ff5ff)"/>
+    <!-- towers L1..L5+ -->
+    <g font-family="JetBrains Mono" font-weight="700" font-size="20" fill="#fff0f6" text-anchor="middle">
+      <rect x="790"  y="700" width="100" height="60"  rx="6" fill="url(#tw)" stroke="#ff4f8b" stroke-width="2"/>
+      <text x="840" y="795">L1</text><text x="840" y="822" fill="#fff0f699">$0</text>
+      <rect x="935"  y="630" width="100" height="130" rx="6" fill="url(#tw)" stroke="#ff4f8b" stroke-width="2"/>
+      <text x="985" y="795">L2</text><text x="985" y="822" fill="#fff0f699">$5</text>
+      <rect x="1080" y="540" width="100" height="220" rx="6" fill="url(#tw)" stroke="#ff4f8b" stroke-width="2"/>
+      <text x="1130" y="795">L3</text><text x="1130" y="822" fill="#fff0f699">$20</text>
+      <rect x="1225" y="430" width="100" height="330" rx="6" fill="url(#tw)" stroke="#ff4f8b" stroke-width="2"/>
+      <text x="1275" y="795">L4</text><text x="1275" y="822" fill="#fff0f699">$50</text>
+      <rect x="1370" y="290" width="100" height="470" rx="6" fill="url(#tw)" stroke="#ff4f8b" stroke-width="2" style="filter:drop-shadow(0 0 18px #ff4f8b)"/>
+      <text x="1420" y="795">L5+</text><text x="1420" y="822" fill="#fff0f699">$100</text>
+      <text x="1420" y="270" fill="#3ff5ff">+1 / $50</text>
+    </g>
+    <!-- windows -->
+    <g fill="#ffd27a" opacity=".9">
+      <rect x="1390" y="320" width="18" height="12"/><rect x="1432" y="320" width="18" height="12"/><rect x="1390" y="360" width="18" height="12"/><rect x="1432" y="400" width="18" height="12"/><rect x="1390" y="440" width="18" height="12"/><rect x="1432" y="480" width="18" height="12"/><rect x="1390" y="560" width="18" height="12"/><rect x="1432" y="620" width="18" height="12"/>
+      <rect x="1245" y="460" width="18" height="12"/><rect x="1287" y="520" width="18" height="12"/><rect x="1245" y="580" width="18" height="12"/><rect x="1287" y="650" width="18" height="12"/>
+      <rect x="1100" y="570" width="18" height="12"/><rect x="1142" y="630" width="18" height="12"/><rect x="1100" y="690" width="18" height="12"/>
+      <rect x="955" y="660" width="18" height="12"/><rect x="997" y="710" width="18" height="12"/>
+    </g>
+  </svg>
+  <div style="position:absolute; left:90px; top:520px; width:600px;">
+    <div class="card" style="border-color:var(--gold); margin-bottom:18px;"><span class="chip" style="color:var(--gold);border:1px solid var(--gold)">BRICKELL</span> <span style="font:800 26px Manrope; margin-left:10px">earns SENT</span></div>
+    <div class="card" style="border-color:var(--orange); margin-bottom:18px;"><span class="chip" style="color:var(--orange);border:1px solid var(--orange)">DOWNTOWN</span> <span style="font:800 26px Manrope; margin-left:10px">earns VOLTA</span></div>
+    <div class="card" style="border-color:var(--sky);"><span class="chip" style="color:var(--sky);border:1px solid var(--sky)">MIAMI BEACH</span> <span style="font:800 26px Manrope; margin-left:10px">earns VOID</span></div>
+  </div>
+</div>
+
+<!-- 6. Sunday: vote + turf race -->
+<div class="img" id="sunday">
+  <div class="map" style="background-size: 1600px auto; background-position: 0 -40px; opacity:.22"></div>
+  <div class="pad">
+    <div class="kick">Every Sunday · 2 PM Miami</div>
+    <div class="h" style="margin-top:8px;">Vote. Build. Take the turf.</div>
+  </div>
+  <div style="position:absolute; left:90px; top:290px; width:660px;" class="card" >
+    <div style="border-color:var(--lime);"></div>
+    <div class="kick" style="color:var(--lime); font-size:20px;">The vote</div>
+    <div style="font:800 36px Manrope; margin:12px 0 14px;">One hideout, one vote.</div>
+    <div class="p" style="font-size:25px;">Every hideout picks the token <b style="color:var(--lime)">Wynwood</b> earns next week. Most votes wins.</div>
+    <div style="margin-top:22px; display:flex; gap:12px;">
+      <span class="chip" style="color:var(--orange);border:1px solid var(--orange)">VOLTA</span><span class="chip" style="color:var(--gold);border:1px solid var(--gold)">SENT</span><span class="chip" style="color:var(--sky);border:1px solid var(--sky)">VOID</span>
+    </div>
+  </div>
+  <div style="position:absolute; left:850px; top:290px; width:660px;" class="card">
+    <div class="kick" style="color:var(--pink); font-size:20px;">The turf race</div>
+    <div style="font:800 36px Manrope; margin:12px 0 14px;">Most new hideouts wins.</div>
+    <div class="p" style="font-size:25px;">The district that builds the most this week takes the whole <b style="color:var(--cyan)">15% street pool</b>.</div>
+    <div style="margin-top:22px;">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px"><span style="width:150px;font:700 18px 'JetBrains Mono';color:var(--gold)">BRICKELL</span><div class="bar" style="width:330px;background:var(--gold);height:18px"></div></div>
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px"><span style="width:150px;font:700 18px 'JetBrains Mono';color:var(--sky)">BEACH</span><div class="bar" style="width:250px;background:var(--sky);height:18px"></div></div>
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px"><span style="width:150px;font:700 18px 'JetBrains Mono';color:var(--orange)">DOWNTOWN</span><div class="bar" style="width:190px;background:var(--orange);height:18px"></div></div>
+      <div style="display:flex;align-items:center;gap:14px;"><span style="width:150px;font:700 18px 'JetBrains Mono';color:var(--lime)">WYNWOOD</span><div class="bar" style="width:120px;background:var(--lime);height:18px"></div></div>
+    </div>
+  </div>
+  <div class="foot"><b>VICE</b> · bring your crew</div>
+</div>
+
+<!-- 7. No backdoor -->
+<div class="img" id="trust">
+  <div class="pad">
+    <div class="kick">Why it's different</div>
+    <div class="h" style="margin-top:8px;">Rules, not promises.</div>
+  </div>
+  <div style="position:absolute; left:90px; top:330px; width:700px;">
+    <div class="check"><div class="tick">✓</div><div><div class="t">Real yield from real volume</div><div class="d">Rewards come only from trading fees. No emissions.</div></div></div>
+    <div class="check"><div class="tick">✓</div><div><div class="t">No backdoor</div><div class="d">The vault has no withdraw function.</div></div></div>
+    <div class="check"><div class="tick">✓</div><div><div class="t">48-hour public delay</div><div class="d">Price settings can't change overnight.</div></div></div>
+  </div>
+  <div style="position:absolute; left:830px; top:330px; width:700px;">
+    <div class="check"><div class="tick">✓</div><div><div class="t">Deflationary</div><div class="d">Every hideout burns $VICE for good.</div></div></div>
+    <div class="check"><div class="tick">✓</div><div><div class="t">The NFT is the position</div><div class="d">Sell or send it: rewards and height go with it.</div></div></div>
+    <div class="check"><div class="tick">✓</div><div><div class="t">Anyone can run it</div><div class="d">Collect, buy and settle are public actions.</div></div></div>
+  </div>
+  <div style="position:absolute; left:90px; bottom:50px; font:500 20px 'JetBrains Mono'; color:#fff0f699; letter-spacing:.06em;">Contracts unaudited · hideout costs are burned, not refunded · rewards follow trading volume</div>
+</div>
+
+</body>
+</html>
