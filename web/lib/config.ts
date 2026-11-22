@@ -13,6 +13,9 @@ export const GAME = {
   buildings: "hideouts",
   /** Social handle of the in-game news account. */
   news: "@vice.news",
+  /** The official X account (linked in the header). */
+  x: "https://x.com/playcityvice",
+  xHandle: "@playcityvice",
 };
 export const TICKER = `$${GAME.ticker}`;
 

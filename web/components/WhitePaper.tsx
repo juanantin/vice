@@ -110,6 +110,11 @@ export default function WhitePaper() {
         The map is drawn from real geography: coastline, rivers, causeways and roads come from OpenStreetMap
         (© OpenStreetMap contributors, ODbL) via Overture Maps. Buildings, crews and landmarks are original art.
       </p>
+
+      <h3>14. Follow the city</h3>
+      <p>
+        News, weekly results and launch updates: <a href={GAME.x} target="_blank" rel="noreferrer">{GAME.xHandle}</a> on X.
+      </p>
     </article>
   );
 }

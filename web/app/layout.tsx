@@ -5,6 +5,7 @@ import { GAME } from "../lib/config";
 export const metadata: Metadata = {
   title: GAME.name,
   description: "Run a crew in Miami: Brickell, Downtown, Wynwood or Miami Beach. Open a hideout, pull scores, take the turf. A city-building game on Elysium, launched on Volta.",
+  twitter: { card: "summary", site: GAME.xHandle },
 };
 
 export const viewport: Viewport = {

@@ -16,7 +16,7 @@ import NewsTicker from "./NewsTicker";
 import Guide from "./Guide";
 import WhitePaper from "./WhitePaper";
 import { BuildTab, MyPalazzoTab, RankingsTab, SindacoTab, TownHallTab, TreasuryTab } from "./Panels";
-import { LIVE, MAX_BUILDINGS, TICKER, TOKENS, VOTE_CITIES } from "../lib/config";
+import { GAME, LIVE, MAX_BUILDINGS, TICKER, TOKENS, VOTE_CITIES } from "../lib/config";
 import { getCity, onCityEvent, setLive, setMode, settleIfDue, tick, ui, useCity } from "../lib/store";
 
 // The tabs are apps on the crew's phone.
@@ -129,6 +129,11 @@ function Game() {
         <div className="top-right">
           <Logo />
           <div className="row-tight">
+            <a className="theme-toggle x-link" href={GAME.x} target="_blank" rel="noreferrer" aria-label={`${GAME.name} on X`} title={`${GAME.xHandle} on X`}>
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden>
+                <path d="M17.75 3h3.07l-6.7 7.66L22 21h-6.17l-4.83-6.32L5.47 21H2.4l7.17-8.2L2 3h6.33l4.37 5.77L17.75 3Zm-1.08 16.2h1.7L7.4 4.73H5.58L16.67 19.2Z" />
+              </svg>
+            </a>
             <ThemeToggle />
             <WalletButton />
           </div>
