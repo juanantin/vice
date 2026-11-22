@@ -1,4 +1,8 @@
-# Runs the VICE keeper every 15 minutes (GitHub may delay scheduled runs a little).
+# Runs the VICE keeper. GitHub's own schedule (every 15 min) is unreliable on this repo (hours
+# between runs), so an outside timer starts it every 10 minutes: cron-job.org POSTs to
+#   https://api.github.com/repos/juanantin/vice/actions/workflows/keeper.yml/dispatches
+# with body {"ref":"main"} and a fine-grained token (this repo only, Actions: read and write).
+# The schedule below stays as a backup; the concurrency group keeps runs from overlapping.
 # Setup (once, in the repo's Settings → Secrets and variables → Actions):
 #   secret   KEEPER_PRIVATE_KEY  a NEW wallet used only for this, holding ~1 HYPE for gas
 #   variable VICE_VAULT          the vault address (optional: otherwise read from web/lib/config.ts)
