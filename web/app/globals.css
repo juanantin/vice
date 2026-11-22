@@ -2202,3 +2202,9 @@ h3 {
 
 /* "Open in your wallet" links (phones without a wallet). */
 .preview-notice a.btn { display: block; text-align: center; text-decoration: none; margin-top: 8px; }
+
+/* CA chip + X link side by side in the token card. */
+.ca-row { display: flex; align-items: center; gap: 6px; margin: 6px 0 4px; }
+.ca-row .ca { margin: 0; }
+.x-link { display: inline-grid; place-items: center; align-self: stretch; padding: 0 8px; color: var(--muted); border: 1px dashed var(--border); border-radius: var(--radius); transition: color 0.15s, border-color 0.15s; }
+.x-link:hover { color: var(--mint); border-color: var(--mint); }

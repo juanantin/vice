@@ -114,6 +114,7 @@ function Game() {
       <header className="top">
         <div className="token-card">
           <div className="token-name">{TICKER}</div>
+          <div className="ca-row">
           <button
             className="ca"
             onClick={() => {
@@ -124,16 +125,17 @@ function Game() {
           >
             CA: {LIVE.vice ? (copied ? "copied" : `${LIVE.vice.slice(0, 6)}…${LIVE.vice.slice(-4)}`) : copied ? "announced at launch" : "coming soon"}
           </button>
+            <a className="x-link" href={GAME.x} target="_blank" rel="noreferrer" aria-label={`${GAME.name} on X`} title={`${GAME.xHandle} on X`}>
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden>
+                <path d="M17.75 3h3.07l-6.7 7.66L22 21h-6.17l-4.83-6.32L5.47 21H2.4l7.17-8.2L2 3h6.33l4.37 5.77L17.75 3Zm-1.08 16.2h1.7L7.4 4.73H5.58L16.67 19.2Z" />
+              </svg>
+            </a>
+          </div>
           <div className="via">via <b>Volta</b> · Elysium</div>
         </div>
         <div className="top-right">
           <Logo />
           <div className="row-tight">
-            <a className="theme-toggle x-link" href={GAME.x} target="_blank" rel="noreferrer" aria-label={`${GAME.name} on X`} title={`${GAME.xHandle} on X`}>
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden>
-                <path d="M17.75 3h3.07l-6.7 7.66L22 21h-6.17l-4.83-6.32L5.47 21H2.4l7.17-8.2L2 3h6.33l4.37 5.77L17.75 3Zm-1.08 16.2h1.7L7.4 4.73H5.58L16.67 19.2Z" />
-              </svg>
-            </a>
             <ThemeToggle />
             <WalletButton />
           </div>
