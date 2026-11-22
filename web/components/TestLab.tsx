@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { parseEther, type Address } from "viem";
-import { useAccount, useChainId, useConnect, useSwitchChain } from "wagmi";
+import { useAccount, useChainId, useSwitchChain } from "wagmi";
+import { useConnectWallet } from "./WalletSheet";
 import { chainError, connectCity, describeError, rememberCity, savedCity, testActions } from "../lib/chain";
 import { DEPLOY_STEPS, deployTestCity } from "../lib/deploy";
 import { CHAIN, EXPLORER } from "../lib/wagmi";
@@ -19,7 +20,7 @@ export default function TestLab() {
   const now = useNow();
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
-  const { connect, connectors } = useConnect();
+  const { connectWallet } = useConnectWallet();
   const { switchChain } = useSwitchChain();
   const [busy, setBusy] = useState<string | null>(null);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
@@ -66,7 +67,7 @@ export default function TestLab() {
       <h3>1 · Wallet</h3>
       {!isConnected ? (
         <>
-          <button className="btn primary wide" onClick={() => connectors[0] && connect({ connector: connectors[0] })}>Connect wallet</button>
+          <button className="btn primary wide" onClick={connectWallet}>Connect wallet</button>
           <p className="muted small">Use a wallet just for testing (MetaMask, Coinbase Wallet, Rabby). On a phone, open this page inside the wallet app&apos;s browser.</p>
         </>
       ) : chainId !== CHAIN.id ? (

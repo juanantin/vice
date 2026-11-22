@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useAccount, useConnect } from "wagmi";
+import { useAccount } from "wagmi";
+import { useConnectWallet } from "./WalletSheet";
 import { DISTRICTS, GAME, LIVE, TICKER, VOLTA_URL, VOTE_CITIES } from "../lib/config";
 import { useCity } from "../lib/store";
 
@@ -21,7 +22,7 @@ const usd = (n: number) => `$${n.toLocaleString("en-US", { maximumFractionDigits
 export default function Guide({ onTab }: { onTab: (t: GuideTab) => void }) {
   const city = useCity();
   const { address, isConnected } = useAccount();
-  const { connect, connectors } = useConnect();
+  const { connectWallet } = useConnectWallet();
   const [dismissed, setDismissed] = useState<string[]>(() => {
     try {
       return JSON.parse(sessionStorage.getItem("vice.guide") ?? "[]") as string[];
@@ -111,7 +112,7 @@ export default function Guide({ onTab }: { onTab: (t: GuideTab) => void }) {
           <button
             className="btn primary small"
             onClick={() => {
-              if (a.connect && connectors[0]) connect({ connector: connectors[0] });
+              if (a.connect) connectWallet();
               if (a.tab) onTab(a.tab);
             }}
           >

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useAccount, useConnect, useDisconnect } from "wagmi";
+import { useAccount, useDisconnect } from "wagmi";
+import WalletSheet, { useConnectWallet } from "./WalletSheet";
 import { useCity } from "../lib/store";
 import { GAME, TICKER } from "../lib/config";
 
@@ -9,7 +10,7 @@ export const short = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;
 
 export default function WalletButton() {
   const { address, isConnected } = useAccount();
-  const { connect, connectors, isPending } = useConnect();
+  const { connectWallet, isPending } = useConnectWallet();
   const { disconnect } = useDisconnect();
   const city = useCity();
   const [notice, setNotice] = useState(false);
@@ -27,10 +28,9 @@ export default function WalletButton() {
       </button>
     );
   }
-  const injected = connectors[0];
   const doConnect = () => {
     setNotice(false);
-    if (injected) connect({ connector: injected });
+    connectWallet();
   };
   return (
     <>
@@ -42,6 +42,7 @@ export default function WalletButton() {
       >
         {isPending ? "Connecting…" : "Connect wallet"}
       </button>
+      <WalletSheet />
       {notice && (
         <div
           className="lab-dialog"

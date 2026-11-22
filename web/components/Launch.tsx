@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { isAddress, type Address } from "viem";
-import { useAccount, useConnect, useDisconnect } from "wagmi";
+import { useAccount, useDisconnect } from "wagmi";
+import WalletSheet, { useConnectWallet } from "./WalletSheet";
 import Providers from "./Providers";
 import { describeError } from "../lib/chain";
 import { GAME, REHEARSAL, TICKER } from "../lib/config";
@@ -28,7 +29,7 @@ const toLocalInput = (unix: number) => {
 
 function Wizard() {
   const { address, isConnected } = useAccount();
-  const { connect, connectors, isPending } = useConnect();
+  const { connectWallet, isPending } = useConnectWallet();
   const { disconnect } = useDisconnect();
   const [s, setS] = useState<LaunchState | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
@@ -115,11 +116,12 @@ function Wizard() {
         {isConnected && address ? (
           <button className="btn small" onClick={() => disconnect()}>● {short(address)}</button>
         ) : (
-          <button className="btn primary" disabled={isPending} onClick={() => connectors[0] && connect({ connector: connectors[0] })}>
+          <button className="btn primary" disabled={isPending} onClick={connectWallet}>
             {isPending ? "Connecting…" : "Connect wallet"}
           </button>
         )}
       </header>
+      <WalletSheet />
 
       {s?.inputs.vice && s.inputs.vice.toLowerCase() === REHEARSAL.vice.toLowerCase() && (
         <section className="launch-card">
