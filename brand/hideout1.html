@@ -1,0 +1,90 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@500;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root { --navy: #0b1634; --pink: #ff4f8b; --cyan: #3ff5ff; --cream: #fff0f6; --lime: #b8f04a; --purple: #7b2ff7; }
+  body { margin: 0; background: #111; padding: 40px; }
+  #card { position: relative; overflow: hidden; width: 1200px; height: 675px; color: var(--cream); font-family: Manrope, sans-serif;
+          background: radial-gradient(circle at 70% 10%, #3a1670 0%, #2a1250 35%, var(--navy) 80%); }
+  .map { position: absolute; inset: 0; background: url(map-clean.png) no-repeat; background-size: 2400px auto; background-position: -420px -330px; opacity: .5; }
+  .shade { position: absolute; inset: 0; background: linear-gradient(90deg, #0b1634f5 0%, #0b1634e0 45%, #0b163455 75%, #0b163422 100%); }
+  .kick { font: 700 18px "JetBrains Mono", monospace; letter-spacing: .32em; color: var(--cyan); text-transform: uppercase; }
+  .chip { display: inline-block; padding: 5px 14px; border-radius: 999px; font: 700 16px "JetBrains Mono", monospace; letter-spacing: .12em; }
+  .stat { border-radius: 18px; background: #0b1634d9; border: 2px solid; padding: 16px 22px; }
+  .stat .l { font: 700 14px "JetBrains Mono", monospace; letter-spacing: .18em; text-transform: uppercase; color: #fff0f6aa; }
+  .stat .v { font: 400 54px Anton, sans-serif; line-height: 1.05; }
+  .word { font-family: Anton, Impact, sans-serif; font-style: italic; color: var(--cream); line-height: 1; text-shadow: 0 0 14px var(--pink), 4px 4px 0 var(--purple); }
+</style>
+</head>
+<body>
+<div id="card">
+  <div class="map"></div>
+  <div class="shade"></div>
+
+  <div style="position:absolute; left:70px; top:56px;">
+    <div class="kick">🏆 First resident of Miami</div>
+    <div style="font: 400 118px Anton, sans-serif; line-height: 1; margin-top: 12px;">HIDEOUT #1</div>
+    <div style="margin-top: 14px; display:flex; gap:10px; align-items:center;">
+      <span class="chip" style="color:var(--lime); border:1px solid var(--lime); background:#b8f04a22">WYNWOOD</span>
+      <span class="chip" style="color:var(--cream); border:1px solid #fff0f655">LOS MURALISTAS</span>
+      <span class="chip" style="color:var(--pink); border:1px solid var(--pink); background:#ff4f8b22">EARLY BIRD</span>
+    </div>
+    <div style="font: 500 22px Manrope; color:#fff0f6bb; margin-top: 14px;">Loft Tower · plot 1 · opened Nov 22, 2026</div>
+  </div>
+
+  <div style="position:absolute; left:70px; top:372px; display:flex; gap:18px;">
+    <div class="stat" style="border-color:#fff0f655; width:190px;"><div class="l">Paid</div><div class="v">$40</div></div>
+    <div class="stat" style="border-color:var(--lime); width:280px; box-shadow: 0 0 30px #b8f04a44;"><div class="l">Earned · day one</div><div class="v" style="color:var(--lime)">$165</div></div>
+    <div class="stat" style="border-color:var(--pink); width:150px;"><div class="l">Level</div><div class="v" style="color:var(--pink)">L4</div></div>
+  </div>
+  <div style="position:absolute; left:72px; top:520px; font: 500 19px Manrope; color:#fff0f6bb;">$88 claimed + $77 waiting, paid in VOLTA from $VICE trading fees.</div>
+
+  <!-- the tower -->
+  <svg width="1200" height="675" style="position:absolute; left:0; top:0">
+    <defs>
+      <linearGradient id="tw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b8f04a"/><stop offset=".55" stop-color="#ff4f8b"/><stop offset="1" stop-color="#7b2ff7"/></linearGradient>
+      <linearGradient id="side" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6f9a24"/><stop offset=".55" stop-color="#a8295a"/><stop offset="1" stop-color="#4a1aa0"/></linearGradient>
+    </defs>
+    <ellipse cx="975" cy="600" rx="170" ry="26" fill="#3ff5ff" opacity=".18"/>
+    <!-- side face -->
+    <path d="M1040 600 L1090 575 L1090 175 L1040 200 Z" fill="url(#side)" stroke="#b8f04a" stroke-width="2"/>
+    <!-- roof -->
+    <path d="M900 200 L950 175 L1090 175 L1040 200 Z" fill="#d9ff8a" stroke="#b8f04a" stroke-width="2"/>
+    <!-- front -->
+    <rect x="900" y="200" width="140" height="400" fill="url(#tw)" stroke="#b8f04a" stroke-width="2" style="filter: drop-shadow(0 0 22px #b8f04a77)"/>
+    <!-- rooftop water tower (Wynwood) -->
+    <g stroke="#b8f04a" stroke-width="2" fill="#0b1634">
+      <line x1="975" y1="188" x2="975" y2="150"/><line x1="1005" y1="188" x2="1005" y2="150"/>
+      <rect x="962" y="118" width="56" height="34" rx="6" fill="#2a1250"/>
+      <path d="M958 118 L990 98 L1022 118 Z" fill="#2a1250"/>
+    </g>
+    <!-- windows -->
+    <g fill="#ffd27a">
+      <rect x="918" y="226" width="22" height="16"/><rect x="958" y="226" width="22" height="16" opacity=".5"/><rect x="998" y="226" width="22" height="16"/>
+      <rect x="918" y="270" width="22" height="16" opacity=".5"/><rect x="958" y="270" width="22" height="16"/><rect x="998" y="270" width="22" height="16"/>
+      <rect x="918" y="314" width="22" height="16"/><rect x="958" y="314" width="22" height="16"/><rect x="998" y="314" width="22" height="16" opacity=".5"/>
+      <rect x="918" y="358" width="22" height="16"/><rect x="958" y="358" width="22" height="16" opacity=".5"/><rect x="998" y="358" width="22" height="16"/>
+      <rect x="918" y="402" width="22" height="16" opacity=".5"/><rect x="958" y="402" width="22" height="16"/><rect x="998" y="402" width="22" height="16"/>
+      <rect x="918" y="446" width="22" height="16"/><rect x="958" y="446" width="22" height="16"/><rect x="998" y="446" width="22" height="16" opacity=".5"/>
+      <rect x="918" y="490" width="22" height="16"/><rect x="958" y="490" width="22" height="16" opacity=".5"/><rect x="998" y="490" width="22" height="16"/>
+    </g>
+    <rect x="955" y="550" width="30" height="50" fill="#0b1634" stroke="#b8f04a" stroke-width="2"/>
+    <!-- palm -->
+    <g stroke="#3ff5a0" stroke-width="7" stroke-linecap="round" fill="none">
+      <path d="M1135 600 Q1125 520 1132 450"/>
+      <path d="M1132 450 Q1095 430 1068 462 M1132 450 Q1172 428 1196 458 M1132 450 Q1112 410 1080 408 M1132 450 Q1156 408 1190 412"/>
+    </g>
+    <!-- level badge -->
+    <g transform="translate(1046,232)">
+      <rect x="0" y="0" width="72" height="40" rx="8" fill="#0b1634" stroke="#ff4f8b" stroke-width="2"/>
+      <text x="36" y="29" text-anchor="middle" font-family="Anton" font-size="26" fill="#ff4f8b">L4</text>
+    </g>
+  </svg>
+
+  <div style="position:absolute; left:72px; bottom:34px; font: 700 18px 'JetBrains Mono'; letter-spacing:.2em; color:#fff0f699;"><b style="color:var(--pink)">VICE</b> · vicetoken.city</div>
+  <div style="position:absolute; right:24px; bottom:14px; font: 500 12px 'JetBrains Mono'; color:#fff0f670;">Map © OpenStreetMap contributors · Overture Maps · rewards follow trading volume</div>
+</div>
+</body>
+</html>
