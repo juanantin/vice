@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { CityScene } from "../lib/scene";
 import { DISTRICTS, GAME, TOKENS, cityToken, levelForUsd } from "../lib/config";
 import { DISTRICT_PLACES, LAND_LABELS, MAP_ATTRIBUTION, PLACES, SEA_LABELS } from "../lib/plots";
-import { getCity, onCityEvent, useCity, type CityEvent } from "../lib/store";
+import { focus, getCity, onCityEvent, useCity, type CityEvent } from "../lib/store";
 import { ago as agoShort } from "../lib/feed";
 import { applyArtTheme } from "../lib/art";
 import { ink, useTheme } from "../lib/theme";
@@ -137,6 +137,21 @@ export default function MapView() {
     };
   }, [theme]);
 
+  // Share link: vicetoken.city/?hideout=12 flies to hideout #12 and opens its card once it has loaded.
+  const deepLinked = useRef(false);
+  useEffect(() => {
+    if (!ready || deepLinked.current) return;
+    const want = Number(new URLSearchParams(window.location.search).get("hideout"));
+    if (!want) {
+      deepLinked.current = true;
+      return;
+    }
+    if (city.buildings.some((b) => b.id === want)) {
+      deepLinked.current = true;
+      setTimeout(() => focus(want), 600);
+    }
+  }, [ready, city.buildings]);
+
   const shownMode = useRef(city.mode);
   useEffect(() => {
     if (!ready) return;
@@ -207,6 +222,7 @@ export default function MapView() {
             {d.earns === "vote" ? " this week (picked by the vote)" : ""}
           </div>
           <div className="bc-grid">
+            <span>Earned</span><b>${(sel.claimedUsd + sel.pendingUsd).toFixed(2)}</b>
             <span>Level</span><b>L{levelForUsd(sel.claimedUsd)}</b>
             <span>Claimed</span><b>${sel.claimedUsd.toFixed(2)}</b>
             <span>Pending</span><b>${sel.pendingUsd.toFixed(2)}</b>
