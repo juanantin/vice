@@ -1,0 +1,77 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@500;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root { --navy: #0b1634; --pink: #ff4f8b; --cyan: #3ff5ff; --cream: #fff0f6; --lime: #b8f04a; --gold: #f5c451; --purple: #7b2ff7; }
+  body { margin: 0; background: #111; padding: 40px; }
+  #card { position: relative; overflow: hidden; width: 1200px; height: 675px; color: var(--cream); font-family: Manrope, sans-serif;
+          background: radial-gradient(circle at 50% 0%, #3a1670 0%, #2a1250 38%, var(--navy) 82%); }
+  .map { position: absolute; inset: 0; background: url(map-clean.png) no-repeat; background-size: 1600px auto; background-position: -200px -260px; opacity: .14; }
+  .kick { font: 700 18px "JetBrains Mono", monospace; letter-spacing: .32em; color: var(--cyan); text-transform: uppercase; }
+  .h { font: 400 66px Anton, sans-serif; line-height: 1; margin-top: 10px; }
+  .wallet { position: absolute; top: 250px; width: 230px; height: 200px; border-radius: 22px; background: #0b1634cc; border: 2px solid; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
+  .wallet .l { font: 700 15px "JetBrains Mono", monospace; letter-spacing: .2em; color: #fff0f6aa; }
+  .wallet .a { font: 700 22px "JetBrains Mono", monospace; }
+  .nft { position: absolute; left: 470px; top: 200px; width: 260px; height: 300px; border-radius: 22px; background: #1a1238; border: 3px solid var(--lime); box-shadow: 0 0 40px #b8f04a55; overflow: hidden; }
+  .nft .t { position: absolute; left: 0; right: 0; top: 18px; text-align: center; font: 800 26px Manrope; }
+  .nft .s { position: absolute; left: 0; right: 0; top: 52px; text-align: center; font: 500 16px Manrope; color: #fff0f6bb; }
+  .arrow { position: absolute; top: 330px; font: 800 64px Manrope; color: var(--pink); text-shadow: 0 0 18px var(--pink); }
+  .rows { position: absolute; left: 70px; right: 70px; top: 520px; display: flex; gap: 18px; }
+  .row { flex: 1; border-radius: 16px; background: #0b1634d9; border: 2px solid; padding: 14px 18px; display: flex; gap: 12px; align-items: center; }
+  .row .e { font-size: 30px; }
+  .row b { display: block; font: 800 20px Manrope; }
+  .row span { font: 500 15px Manrope; color: #fff0f6bb; }
+</style>
+</head>
+<body>
+<div id="card">
+  <div class="map"></div>
+  <div style="position:absolute; left:70px; top:48px;">
+    <div class="kick">Hideouts are NFTs</div>
+    <div class="h">Yours to move.</div>
+  </div>
+  <div style="position:absolute; right:70px; top:62px; text-align:right; font: 500 21px Manrope; color:#fff0f6cc; line-height:1.45;">
+    Hideout tab → <b style="color:var(--pink)">Send</b><br>paste an address, confirm.
+  </div>
+
+  <div class="wallet" style="left:110px; border-color:#fff0f655;">
+    <svg width="54" height="44" viewBox="0 0 54 44" fill="none" stroke="#fff0f6" stroke-width="3"><rect x="2" y="6" width="50" height="36" rx="7"/><path d="M38 20h14v10H38a5 5 0 0 1 0-10Z"/><path d="M8 6 34 1"/></svg>
+    <div class="l">YOUR WALLET</div>
+    <div class="a">0xA1…7c2</div>
+  </div>
+  <div class="arrow" style="left:372px;">→</div>
+
+  <!-- the hideout NFT, drawn like the on-chain image -->
+  <div class="nft">
+    <div class="t">Wynwood</div>
+    <div class="s">VICE #1 · L4</div>
+    <svg width="260" height="300" style="position:absolute; left:0; top:0">
+      <ellipse cx="130" cy="236" rx="104" ry="28" fill="#f3d9a8"/>
+      <ellipse cx="130" cy="232" rx="92" ry="22" fill="#3a2350"/>
+      <g fill="#b8f04a" stroke="#ff6fae" stroke-width="2">
+        <rect x="88" y="214" width="84" height="14" rx="3"/><rect x="88" y="198" width="84" height="14" rx="3"/>
+        <rect x="88" y="182" width="84" height="14" rx="3"/><rect x="88" y="166" width="84" height="14" rx="3"/>
+      </g>
+      <g fill="#ffd27a"><rect x="98" y="218" width="10" height="6"/><rect x="125" y="202" width="10" height="6"/><rect x="152" y="186" width="10" height="6"/><rect x="110" y="170" width="10" height="6"/></g>
+    </svg>
+  </div>
+
+  <div class="arrow" style="left:766px;">→</div>
+  <div class="wallet" style="left:860px; border-color:var(--cyan); box-shadow: 0 0 30px #3ff5ff33;">
+    <svg width="54" height="44" viewBox="0 0 54 44" fill="none" stroke="#3ff5ff" stroke-width="3"><rect x="2" y="6" width="50" height="36" rx="7"/><path d="M38 20h14v10H38a5 5 0 0 1 0-10Z"/><path d="M8 6 34 1"/></svg>
+    <div class="l">ANY WALLET</div>
+    <div class="a" style="color:var(--cyan)">0x9F…e41</div>
+  </div>
+
+  <div class="rows">
+    <div class="row" style="border-color:var(--lime)"><div class="e">💰</div><div><b>Unclaimed rewards</b><span>go with it</span></div></div>
+    <div class="row" style="border-color:var(--pink)"><div class="e">🏢</div><div><b>Its height</b><span>the level stays</span></div></div>
+    <div class="row" style="border-color:var(--gold)"><div class="e">🗳</div><div><b>This week's vote</b><span>if not used yet</span></div></div>
+  </div>
+  <div style="position:absolute; left:72px; bottom:22px; font: 700 16px 'JetBrains Mono'; letter-spacing:.2em; color:#fff0f699;"><b style="color:var(--pink)">VICE</b> · vicetoken.city/?hideout=1</div>
+  <div style="position:absolute; right:24px; bottom:22px; font: 500 13px 'JetBrains Mono'; color:#fff0f680;">Transfers are final · double-check the address</div>
+</div>
+</body>
+</html>
