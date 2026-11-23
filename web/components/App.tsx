@@ -157,7 +157,7 @@ function Game() {
           ) : (
             <>
               <span>{liveCity ? "Miami" : "Test city"}</span>
-              <b>● {liveCity ? (city.chain ? "Live" : chainError() ? "Can't reach Elysium" : "Loading") : "On chain"}</b>
+              <b title={chainError() ?? undefined}>● {liveCity ? (city.chain ? "Live" : chainError() ? "Can't reach Elysium" : "Loading") : "On chain"}</b>
             </>
           )}
         </button>

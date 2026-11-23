@@ -1,4 +1,4 @@
-import { createConfig, fallback, http } from "wagmi";
+import { createConfig, custom, fallback, http } from "wagmi";
 import { injected } from "wagmi/connectors";
 import { createPublicClient, defineChain } from "viem";
 
@@ -18,7 +18,26 @@ const BACKUP_RPC = "https://rpc.elysium.kinetiq.xyz";
 export const CHAIN = elysium;
 export const EXPLORER = "https://elysium.kinetiq.xyz";
 
-const transport = fallback([http(RPC_URL, { batch: { batchSize: 40 } }), http(BACKUP_RPC, { batch: { batchSize: 40 } })]);
+type Eip1193 = { request: (a: { method: string; params?: unknown }) => Promise<unknown> };
+
+/** The player's own wallet as a last-resort reader: some browsers (ad-blockers, VPNs, networks)
+ *  can't reach the public RPCs, but the wallet extension always reaches its chain. Used only while
+ *  the wallet is on Elysium; otherwise it steps aside so the fallback tries the next node. */
+const walletReader = custom({
+  async request({ method, params }) {
+    const eth = typeof window !== "undefined" ? (window as unknown as { ethereum?: Eip1193 }).ethereum : undefined;
+    if (!eth) throw new Error("No wallet to read through");
+    const id = await eth.request({ method: "eth_chainId" });
+    if (Number(id) !== CHAIN.id) throw new Error("Wallet is not on Elysium");
+    return eth.request({ method, params });
+  },
+});
+
+const transport = fallback([
+  http(RPC_URL, { batch: { batchSize: 40 }, timeout: 8_000, retryCount: 0 }),
+  walletReader,
+  http(BACKUP_RPC, { batch: { batchSize: 40 }, timeout: 8_000, retryCount: 0 }),
+]);
 
 export const wagmiConfig = createConfig({
   chains: [CHAIN],
