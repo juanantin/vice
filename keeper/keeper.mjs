@@ -6,7 +6,7 @@
 //   2. collect the creator fees Volta credited to the vault (the city tax, in VOLTA);
 //   3. settle the week after the Sunday deadline (and the early bird when it ends);
 //   4. request a buy (one order; the vault enforces sizes, spacing and the 4% price check);
-//      after 24h without buys the vault's scheduler rests until someone calls requestBuy;
+//      simulated every run, sent only when it would buy (this also wakes a resting scheduler);
 //   5. pay the ops share out once it is worth it.
 //
 // Env: KEEPER_PRIVATE_KEY (secret), VICE_VAULT (or the LIVE vault in web/lib/config.ts),
@@ -167,9 +167,14 @@ async function main() {
       pub.readContract({ ...v, functionName: "pausedUntil" }),
     ]);
     const paused = Number(pausedRaw);
-    if (!active) log("buy: scheduler resting (24h without buys); anyone can restart it with requestBuy()");
-    else if (paused > now) log(`buy: paused after a rejected order until ${new Date(paused * 1000).toISOString()}`);
-    else await act("buy", v, "requestBuy", (bought) => bought === true);
+    if (paused > now) log(`buy: paused after a rejected order until ${new Date(paused * 1000).toISOString()}`);
+    else {
+      // The simulation is free; a transaction goes out only when it would really buy. This also
+      // wakes the vault's scheduler after a quiet day (24h without buys), so the city keeps
+      // buying on autopilot as soon as trading comes back.
+      if (!active) log("buy: scheduler resting after a quiet day; checking whether a buy is due");
+      await act("buy", v, "requestBuy", (bought) => bought === true);
+    }
   });
 
   // 5. Ops share.
