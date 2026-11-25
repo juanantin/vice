@@ -22,7 +22,12 @@ const chain = defineChain({
   name: "Elysium",
   nativeCurrency: { name: "HYPE", symbol: "HYPE", decimals: 18 },
   rpcUrls: { default: { http: [process.env.ELYSIUM_RPC || "https://rpc.elysium.kinetiq.xyz"] } },
+  contracts: { multicall3: { address: "0xcA11bde05977b3631167028862bE2a173976CA11" } },
 });
+
+// Kinetiq's public node rate-limits per IP (GitHub's runners share IPs): retry patiently with
+// growing waits, and bundle parallel reads into one Multicall3 call.
+const transport = () => http(undefined, { retryCount: 6, retryDelay: 1500 });
 
 const vaultAbi = parseAbi([
   "function oracle() view returns (address)",
@@ -78,8 +83,8 @@ async function main() {
   const pk = process.env.KEEPER_PRIVATE_KEY;
   if (!pk && !dry) throw new Error("KEEPER_PRIVATE_KEY is not set (add it as a repository secret).");
   const account = pk ? privateKeyToAccount(pk.startsWith("0x") ? pk : `0x${pk}`) : null;
-  const pub = createPublicClient({ chain, transport: http() });
-  const wallet = account ? createWalletClient({ chain, transport: http(), account }) : null;
+  const pub = createPublicClient({ chain, transport: transport(), batch: { multicall: true } });
+  const wallet = account ? createWalletClient({ chain, transport: transport(), account }) : null;
 
   const v = { address: vault, abi: vaultAbi };
   const [oracle, income, escrow] = await Promise.all([
@@ -120,38 +125,66 @@ async function main() {
   const block = await pub.getBlock();
   const now = Number(block.timestamp);
 
+  // Each step runs on its own: a refused read skips that step, not the whole run.
+  let failed = 0;
+  async function step(name, fn) {
+    try {
+      await fn();
+    } catch (e) {
+      failed++;
+      log(`${name}: skipped (${(e.shortMessage || e.message || String(e)).split("\n")[0]})`);
+    }
+    await new Promise((r) => setTimeout(r, 400)); // be gentle with the public node
+  }
+
   // 1. Oracle reference.
-  const updatedAt = Number(await pub.readContract({ ...o, functionName: "hypeUsdUpdatedAt" }));
-  if (now >= updatedAt + 300) await act("poke oracle", o, "poke");
+  await step("poke oracle", async () => {
+    const updatedAt = Number(await pub.readContract({ ...o, functionName: "hypeUsdUpdatedAt" }));
+    if (now >= updatedAt + 300) await act("poke oracle", o, "poke");
+  });
 
   // 2. Creator fees.
-  const waiting = await pub.readContract({ address: escrow, abi: escrowAbi, functionName: "balances", args: [vault, income] });
-  log(`creator fees waiting in Volta's escrow: ${formatUnits(waiting, 18)} VOLTA`);
-  if (waiting > 0n) await act("collect creator fees", v, "collectCreatorFees");
+  await step("collect creator fees", async () => {
+    const waiting = await pub.readContract({ address: escrow, abi: escrowAbi, functionName: "balances", args: [vault, income] });
+    log(`creator fees waiting in Volta's escrow: ${formatUnits(waiting, 18)} VOLTA`);
+    if (waiting > 0n) await act("collect creator fees", v, "collectCreatorFees");
+  });
 
   // 3. Settlement.
-  const [weekEnd, ebEnd, ebDone] = await Promise.all([
-    pub.readContract({ ...v, functionName: "weekEnd" }),
-    pub.readContract({ ...v, functionName: "earlyBirdEnd" }),
-    pub.readContract({ ...v, functionName: "earlyBirdFinalized" }),
-  ]);
-  if (now >= Number(weekEnd) || (!ebDone && now >= Number(ebEnd))) await act("settle", v, "settle");
+  await step("settle", async () => {
+    const [weekEnd, ebEnd, ebDone] = await Promise.all([
+      pub.readContract({ ...v, functionName: "weekEnd" }),
+      pub.readContract({ ...v, functionName: "earlyBirdEnd" }),
+      pub.readContract({ ...v, functionName: "earlyBirdFinalized" }),
+    ]);
+    if (now >= Number(weekEnd) || (!ebDone && now >= Number(ebEnd))) await act("settle", v, "settle");
+  });
 
   // 4. Buy (only while the scheduler is active; it rests after 24h without buys).
-  const active = await pub.readContract({ ...v, functionName: "schedulerActive" });
-  const paused = Number(await pub.readContract({ ...v, functionName: "pausedUntil" }));
-  if (!active) log("buy: scheduler resting (24h without buys); anyone can restart it with requestBuy()");
-  else if (paused > now) log(`buy: paused after a rejected order until ${new Date(paused * 1000).toISOString()}`);
-  else await act("buy", v, "requestBuy", (bought) => bought === true);
+  await step("buy", async () => {
+    const [active, pausedRaw] = await Promise.all([
+      pub.readContract({ ...v, functionName: "schedulerActive" }),
+      pub.readContract({ ...v, functionName: "pausedUntil" }),
+    ]);
+    const paused = Number(pausedRaw);
+    if (!active) log("buy: scheduler resting (24h without buys); anyone can restart it with requestBuy()");
+    else if (paused > now) log(`buy: paused after a rejected order until ${new Date(paused * 1000).toISOString()}`);
+    else await act("buy", v, "requestBuy", (bought) => bought === true);
+  });
 
   // 5. Ops share.
-  const [opsFunds, voltaUsd] = await Promise.all([
-    pub.readContract({ ...v, functionName: "opsFunds" }),
-    pub.readContract({ ...o, functionName: "incomeUsd" }),
-  ]);
-  const opsUsd = (Number(formatUnits(opsFunds, 18)) * Number(formatUnits(voltaUsd, 18)));
-  log(`ops share waiting: ${formatUnits(opsFunds, 18)} VOLTA (~$${opsUsd.toFixed(2)})`);
-  if (opsUsd >= OPS_MIN_USD) await act("pay ops", v, "payOps");
+  await step("pay ops", async () => {
+    const [opsFunds, voltaUsd] = await Promise.all([
+      pub.readContract({ ...v, functionName: "opsFunds" }),
+      pub.readContract({ ...o, functionName: "incomeUsd" }),
+    ]);
+    const opsUsd = Number(formatUnits(opsFunds, 18)) * Number(formatUnits(voltaUsd, 18));
+    log(`ops share waiting: ${formatUnits(opsFunds, 18)} VOLTA (~$${opsUsd.toFixed(2)})`);
+    if (opsUsd >= OPS_MIN_USD) await act("pay ops", v, "payOps");
+  });
+
+  // Every step refused: the node is unreachable, so show the run as failed on GitHub.
+  if (failed === 5) throw new Error("every step was refused by the RPC");
 }
 
 main().catch((e) => {
