@@ -21,7 +21,7 @@ const chain = defineChain({
   id: 99901,
   name: "Elysium",
   nativeCurrency: { name: "HYPE", symbol: "HYPE", decimals: 18 },
-  rpcUrls: { default: { http: [process.env.ELYSIUM_RPC || "https://rpc.volta.family"] } },
+  rpcUrls: { default: { http: [process.env.ELYSIUM_RPC || "https://rpc.elysium.kinetiq.xyz"] } },
 });
 
 const vaultAbi = parseAbi([

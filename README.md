@@ -25,7 +25,7 @@ Keeper: `keeper/keeper.mjs`, run every 15 min by `.github/workflows/keeper.yml`.
 ```sh
 forge build
 forge test            # unit + fuzz + invariant tests
-ELYSIUM_RPC=https://rpc.volta.family forge test --match-path 'test/fork/*'   # against live Elysium
+ELYSIUM_RPC=https://rpc.elysium.kinetiq.xyz forge test --match-path 'test/fork/*'   # against live Elysium
 ```
 ## Website preview (`web/`)
 Next.js + PixiJS, unplugged (sample data; a hidden test lab deploys a test city).

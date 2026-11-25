@@ -164,7 +164,7 @@ PixiJS 8 + d3-geo. Must run smoothly on phones. Deployed on Vercel from `main` (
    gated by typing SEND, "Check everything" read-back). `script/DeployCity.s.sol` is the CLI
    equivalent.
 6. Verified against live Elysium state (fork tests `test/fork/`, run with
-   `ELYSIUM_RPC=https://rpc.volta.family forge test --match-path 'test/fork/*'`): oracle vs
+   `ELYSIUM_RPC=https://rpc.elysium.kinetiq.xyz forge test --match-path 'test/fork/*'`): oracle vs
    Volta's calculators, swaps within 0.5% of the fee-adjusted reference, a whole city with SENT
    as stand-in $VICE (creator NFT → vault, fees, builds, buys, claims, ops). Also an anvil fork
    rehearsal: launch page clicked through end to end (incl. the 48h finish), a hideout built

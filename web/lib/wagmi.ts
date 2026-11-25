@@ -10,11 +10,12 @@ export const elysium = defineChain({
   nativeCurrency: { name: "HYPE", symbol: "HYPE", decimals: 18 },
   rpcUrls: { default: { http: ["https://rpc.elysium.kinetiq.xyz"] } },
   blockExplorers: { default: { name: "Elysium explorer", url: "https://elysium.kinetiq.xyz" } },
+  // Multicall3 (standard address, deployed on Elysium): many reads travel as one call.
+  contracts: { multicall3: { address: "0xcA11bde05977b3631167028862bE2a173976CA11" } },
 });
 
-// Volta's RPC answers browsers (CORS) and batches; Kinetiq's is the backup. Both reach the same chain.
-export const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL || "https://rpc.volta.family";
-const BACKUP_RPC = "https://rpc.elysium.kinetiq.xyz";
+// Kinetiq's public Elysium RPC (Volta closed rpc.volta.family in Nov 2026 and points to this one).
+export const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL || "https://rpc.elysium.kinetiq.xyz";
 export const CHAIN = elysium;
 export const EXPLORER = "https://elysium.kinetiq.xyz";
 
@@ -34,9 +35,8 @@ const walletReader = custom({
 });
 
 const transport = fallback([
-  http(RPC_URL, { batch: { batchSize: 40 }, timeout: 8_000, retryCount: 0 }),
+  http(RPC_URL, { batch: { batchSize: 40 }, timeout: 10_000, retryCount: 1 }),
   walletReader,
-  http(BACKUP_RPC, { batch: { batchSize: 40 }, timeout: 8_000, retryCount: 0 }),
 ]);
 
 export const wagmiConfig = createConfig({
@@ -46,4 +46,6 @@ export const wagmiConfig = createConfig({
   ssr: false,
 });
 
-export const publicClient = createPublicClient({ chain: CHAIN, transport });
+// Kinetiq's public node rate-limits each visitor per call, so reads are bundled through Multicall3:
+// one page refresh is a handful of calls instead of ~40.
+export const publicClient = createPublicClient({ chain: CHAIN, transport, batch: { multicall: { batchSize: 4096, wait: 20 } } });

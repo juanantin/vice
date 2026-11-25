@@ -21,7 +21,7 @@ import {ViceNFT} from "../../src/ViceNFT.sol";
 import {ViceVault, IFeeEscrow, IViceNFTView, IWETH} from "../../src/ViceVault.sol";
 
 /// Runs the real oracle, swap adapter and a whole city against a copy of live Elysium.
-/// Skipped unless ELYSIUM_RPC is set:  ELYSIUM_RPC=https://rpc.volta.family forge test --match-path 'test/fork/*'
+/// Skipped unless ELYSIUM_RPC is set:  ELYSIUM_RPC=https://rpc.elysium.kinetiq.xyz forge test --match-path 'test/fork/*'
 ///
 /// SENT stands in for $VICE: like $VICE it is a Volta token paired with $VOLTA whose creator
 /// takes 100% of the creator split, so its creator NFT, fees and pool behave the same way.
